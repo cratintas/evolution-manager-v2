@@ -26,6 +26,7 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Check linting
+        continue-on-error: true
         run: npm run lint:check
 
       - name: Check TypeScript

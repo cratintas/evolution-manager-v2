@@ -8,6 +8,7 @@ on:
 jobs:
   build_deploy:
     name: Build and Deploy
+    if: ${{ secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

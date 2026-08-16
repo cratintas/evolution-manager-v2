@@ -6,7 +6,7 @@ COPY package*.json ./
 
 # Install dependencies without running prepare scripts
 RUN echo "Iniciando install..." && \
-    npm ci --ignore-scripts && \
+    npm install --ignore-scripts --no-audit --no-fund && \
     echo "Install concluído."
 
 # Copy source code
