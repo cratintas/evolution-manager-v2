@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Form, FormSelect } from "@/components/ui/form";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -39,7 +40,6 @@ function Login() {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const logoSrc = "/assets/branding/logo-cra.webp";
 
   const loginForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -127,7 +127,7 @@ function Login() {
       </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center text-center">
-          <img src={logoSrc} alt="CRA Tintas" className="mb-3 h-14 w-14 rounded-xl object-cover" />
+          <BrandLogo className="mb-4" />
           <p className="text-sm text-muted-foreground">{t("login.description")}</p>
         </div>
 
@@ -206,7 +206,7 @@ function Login() {
 
         <div className="text-center text-xs text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} Evolution API ·{" "}
+            © {new Date().getFullYear()} ·{" "}
             <a href="https://docs.evolutionfoundation.com.br/" target="_blank" rel="noreferrer" className="underline hover:text-primary">
               Documentação
             </a>

@@ -28,7 +28,7 @@ const TEMPLATES: Record<TabKey, Record<string, unknown>> = {
   reply: {
     title: "Resposta Rápida",
     description: "Escolha uma das opções abaixo:",
-    footer: "Evolution API",
+    footer: "",
     buttons: [
       { type: "reply", displayText: "✅ Confirmar", id: "opt_confirm" },
       { type: "reply", displayText: "❌ Cancelar", id: "opt_cancel" },

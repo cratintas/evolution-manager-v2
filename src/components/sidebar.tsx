@@ -17,6 +17,7 @@ import { NavLink, useLocation } from "react-router-dom";
 
 import { useInstance } from "@/contexts/InstanceContext";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { FEATURES, FeatureKey, isFeatureEnabled } from "@/lib/provider/features";
 import { cn } from "@/lib/utils";
 
@@ -41,16 +42,10 @@ type MenuGroup = {
 type Menu = MenuLeaf | MenuGroup;
 
 function SidebarShell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
-  const currentYear = new Date().getFullYear();
-
   return (
     <aside className="hidden w-62 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex" style={{ width: 248 }}>
-      <div className="flex items-center gap-3 px-5 pb-5 pt-6">
-        <img src="/assets/branding/logo-cra.webp" alt="CRA Tintas" className="h-9 w-9 rounded-lg object-cover" />
-        <div className="leading-none">
-          <b className="block text-[16px] font-bold tracking-tight">CRA</b>
-          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">WhatsApp</span>
-        </div>
+      <div className="px-4 pb-5 pt-6">
+        <BrandLogo compact />
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
@@ -62,11 +57,6 @@ function SidebarShell({ children, footer }: { children: React.ReactNode; footer?
           {footer}
         </div>
       )}
-
-      <div className="border-t border-sidebar-border p-4">
-        <div className="text-sm font-semibold">CRA Tintas</div>
-        <div className="mt-1 text-xs text-muted-foreground">© {currentYear} Painel administrativo</div>
-      </div>
     </aside>
   );
 }

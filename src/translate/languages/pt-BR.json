@@ -206,8 +206,8 @@
     }
   },
   "login": {
-    "title": "Evolution Manager",
-    "description": "Por favor, faça login para continuar",
+    "title": "Entrar",
+    "description": "Acesse o painel",
     "subtitle": "Digite suas credenciais para acessar o sistema",
     "form": {
       "serverUrl": "URL do Servidor",

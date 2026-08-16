@@ -277,7 +277,7 @@
     }
   },
   "login": {
-    "title": "Evolution Manager",
+    "title": "Sign in",
     "description": "Please enter your credentials to continue",
     "form": {
       "serverUrl": "Server URL",

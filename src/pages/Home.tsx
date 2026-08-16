@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@evoa
 import { Badge } from "@evoapi/design-system/badge";
 import { ArrowRight, GitBranch, Globe, Mail, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { BrandLogo } from "@/components/brand-logo";
 import { ModeToggle } from "@/components/mode-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 
@@ -18,7 +19,7 @@ export default function Home() {
       {/* Header with theme toggle */}
       <header className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center">
-          <img src="/assets/branding/logo-cra.webp" alt="CRA Tintas" className="h-9 w-9 rounded-lg object-cover" />
+          <BrandLogo compact />
         </div>
         <div className="flex items-center gap-4">
           <LanguageToggle />
@@ -31,13 +32,10 @@ export default function Home() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-6">
-              <img src="/assets/branding/logo-cra.webp" alt="CRA Tintas" className="h-14 w-14 rounded-xl object-cover" />
+              <BrandLogo />
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              CRA WhatsApp
-            </h1>
             <p className="text-xl text-muted-foreground mb-6">
-              Painel administrativo da CRA Tintas
+              Painel administrativo
             </p>
             <Badge variant="secondary" className="text-sm px-3 py-1">
               Versão 2.4.0
@@ -49,10 +47,10 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />
-                Bem-vindo ao painel CRA
+                Bem-vindo
               </CardTitle>
               <CardDescription>
-                Gerencie as instâncias de WhatsApp da CRA Tintas no mesmo visual do administrativo.
+                Gerencie as instâncias de WhatsApp.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -63,7 +61,7 @@ export default function Home() {
                     size="lg"
                     className="px-8 py-3"
                   >
-                    Access Manager Dashboard
+                    Entrar no painel
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -123,7 +121,7 @@ export default function Home() {
 
           {/* Footer */}
           <div className="text-center mt-12 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} CRA Tintas. Painel administrativo.</p>
+            <p>© {new Date().getFullYear()}</p>
           </div>
         </div>
       </div>
