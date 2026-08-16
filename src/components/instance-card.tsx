@@ -11,10 +11,13 @@ import { TestInteractiveModal } from "@/components/test-interactive-modal";
 
 import { Instance } from "@/types/evolution.types";
 
-const StatusBadge = ({ status }: { status?: string }) => {
+const StatusBadge = ({ status, configured }: { status?: string; configured?: boolean }) => {
   const { t } = useTranslation();
   if (status === "open") return <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20">{t("status.open")}</Badge>;
   if (status === "connecting") return <Badge className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20">{t("status.connecting")}</Badge>;
+  if (!configured) {
+    return <Badge className="bg-muted text-muted-foreground hover:bg-muted">{t("status.unconfigured", { defaultValue: "Não configurado" })}</Badge>;
+  }
   return <Badge className="bg-red-500/10 text-red-500 hover:bg-red-500/20">{t("status.closed")}</Badge>;
 };
 
@@ -35,6 +38,7 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
   const goToInstance = () => navigate(`/manager/instance/${instance.id}/dashboard`);
   const goToSettings = () => navigate(`/manager/instance/${instance.id}/settings`);
   const connected = instance.connectionStatus === "open";
+  const configured = connected || Boolean(instance.ownerJid);
   const canTest = connected;
 
   return (
@@ -70,7 +74,7 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
           </div>
 
           <div className="flex-shrink-0">
-            <StatusBadge status={instance.connectionStatus} />
+            <StatusBadge status={instance.connectionStatus} configured={configured} />
           </div>
         </button>
 
@@ -95,23 +99,29 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
           {!connected && (
             <Button size="sm" className="rounded-full" onClick={() => setConnectOpen(true)}>
               <QrCode className="mr-1.5 h-4 w-4" />
-              {t("instance.dashboard.button.qrcode.label")}
+              {configured
+                ? t("instance.dashboard.button.qrcode.label")
+                : t("instance.dashboard.button.configure", { defaultValue: "Configurar" })}
             </Button>
           )}
-          <Button size="sm" variant="outline" className="rounded-full" onClick={goToSettings}>
-            <Settings className="mr-1.5 h-4 w-4" />
-            {t("dashboard.settings")}
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            className="h-9 w-9 rounded-full text-muted-foreground"
-            disabled={!canTest}
-            title={canTest ? t("testInteractive.title") : t("testInteractive.requiresOpen")}
-            onClick={() => setTestOpen(true)}
-          >
-            <FlaskConical className="h-4 w-4" />
-          </Button>
+          {configured && (
+            <>
+              <Button size="sm" variant="outline" className="rounded-full" onClick={goToSettings}>
+                <Settings className="mr-1.5 h-4 w-4" />
+                {t("dashboard.settings")}
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-9 w-9 rounded-full text-muted-foreground"
+                disabled={!canTest}
+                title={canTest ? t("testInteractive.title") : t("testInteractive.requiresOpen")}
+                onClick={() => setTestOpen(true)}
+              >
+                <FlaskConical className="h-4 w-4" />
+              </Button>
+            </>
+          )}
           <Button
             size="icon"
             variant="outline"

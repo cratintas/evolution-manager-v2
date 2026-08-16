@@ -10,8 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@evoapi/design-system/avata
 import { Button } from "@evoapi/design-system/button";
 import { Textarea } from "@/components/ui/textarea";
 
+import { ContactProfileDialog } from "@/components/contact-profile-dialog";
 import { useInstance } from "@/contexts/InstanceContext";
 
+import { useFetchWhatsAppProfile } from "@/lib/queries/chat/fetchProfile";
 import { useFindChat } from "@/lib/queries/chat/findChat";
 import { useFindMessages } from "@/lib/queries/chat/findMessages";
 import { useArchiveChat, useMarkChatRead } from "@/lib/queries/chat/manageChat";
@@ -310,6 +312,7 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
   const [messageText, setMessageText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [realtimeMessages, setRealtimeMessages] = useState<Message[]>([]);
   const { sendText: sendTextMutation } = useSendMessage();
   const { sendMedia: sendMediaMutation } = useSendMedia();
@@ -612,7 +615,13 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
     );
   };
 
-  const headerName = chat ? displayName(chat) : formatJid(remoteJid);
+  const liveProfile = useFetchWhatsAppProfile({
+    instanceName: instance?.name,
+    number: remoteJid,
+    enabled: instance?.connectionStatus === "open" && !!remoteJid && !isGroupJid(remoteJid || ""),
+  });
+  const headerName = liveProfile.data?.name?.trim() || (chat ? displayName(chat) : formatJid(remoteJid));
+  const headerPicture = liveProfile.data?.picture || chat?.profilePicUrl;
   const headerSub = formatJid(chat?.remoteJid || remoteJid);
   const labels = chatLabels(chat?.labels);
   const isOpenWindow = chat?.windowActive !== false;
@@ -676,9 +685,9 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
   return (
     <div className="flex h-full flex-col bg-[var(--inbox-canvas)]">
       <div className="inbox-thread-header">
-        <div className="flex min-w-0 items-center gap-3">
+        <button type="button" className="flex min-w-0 items-center gap-3 text-left" onClick={() => setProfileOpen(true)}>
           <Avatar className="h-10 w-10">
-            <AvatarImage src={chat?.profilePicUrl} alt={headerName} />
+            <AvatarImage src={headerPicture} alt={headerName} />
             <AvatarFallback className="bg-muted text-muted-foreground">
               {isGroupJid(remoteJid) ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
             </AvatarFallback>
@@ -699,7 +708,7 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
             </div>
             <p className="truncate text-xs text-muted-foreground">{headerSub}</p>
           </div>
-        </div>
+        </button>
         <Button type="button" variant="outline" className="shrink-0 rounded-full" onClick={concludeChat}>
           <CheckCheck className="mr-1.5 h-4 w-4" />
           {t("chat.conclude.action", { defaultValue: "Concluir" })}
@@ -771,6 +780,17 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
           </div>
         </div>
       </div>
+      <ContactProfileDialog
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        instanceId={instanceId}
+        instanceName={instance?.name}
+        remoteJid={remoteJid}
+        fallbackName={headerName}
+        fallbackPicture={headerPicture || undefined}
+        connected={instance?.connectionStatus === "open"}
+        showChatButton={false}
+      />
     </div>
   );
 }

@@ -129,7 +129,8 @@
     "all": "All",
     "open": "Connected",
     "connecting": "Connecting",
-    "closed": "Disconnected"
+    "closed": "Disconnected",
+    "unconfigured": "Not configured"
   },
   "footer": {
     "clientName": "Client name",

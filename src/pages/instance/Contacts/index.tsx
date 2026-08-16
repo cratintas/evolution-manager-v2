@@ -6,10 +6,12 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { ContactProfileDialog } from "@/components/contact-profile-dialog";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useInstance } from "@/contexts/InstanceContext";
 import { useFindContacts } from "@/lib/queries/chat/findContacts";
+import { useLiveProfiles } from "@/lib/queries/chat/fetchProfile";
 import { formatJid } from "@/pages/instance/Chat/chat-utils";
 
 function Contacts() {
@@ -18,7 +20,9 @@ function Contacts() {
   const { instanceId } = useParams<{ instanceId: string }>();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [profileJid, setProfileJid] = useState<string | null>(null);
   const { data: contacts = [], isLoading } = useFindContacts({ instanceName: instance?.name });
+  const liveProfiles = useLiveProfiles(instance?.name, contacts, instance?.connectionStatus === "open");
 
   const visible = useMemo(() => {
     const list = [...contacts].sort((a, b) => (a.pushName || a.remoteJid).localeCompare(b.pushName || b.remoteJid));
@@ -68,20 +72,24 @@ function Contacts() {
           </div>
         ) : (
           <ul className="divide-y">
-            {visible.map((contact) => (
+            {visible.map((contact) => {
+              const live = liveProfiles.get(contact.remoteJid);
+              const name = live?.name || contact.pushName || formatJid(contact.remoteJid);
+              const picture = live?.picture || contact.profilePicUrl;
+              return (
               <li key={contact.id || contact.remoteJid} className="flex items-center justify-between gap-3 px-6 py-3">
-                <div className="flex min-w-0 items-center gap-3">
+                <button type="button" className="flex min-w-0 items-center gap-3 text-left" onClick={() => setProfileJid(contact.remoteJid)}>
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={contact.profilePicUrl} alt={contact.pushName} />
+                    <AvatarImage src={picture} alt={name} />
                     <AvatarFallback>
                       <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{contact.pushName || formatJid(contact.remoteJid)}</p>
+                    <p className="truncate font-medium">{name}</p>
                     <p className="truncate text-sm text-muted-foreground">{formatJid(contact.remoteJid)}</p>
                   </div>
-                </div>
+                </button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -91,10 +99,27 @@ function Contacts() {
                   {t("contacts.openChat", { defaultValue: "Conversar" })}
                 </Button>
               </li>
-            ))}
+            );
+            })}
           </ul>
         )}
       </div>
+      <ContactProfileDialog
+        open={!!profileJid}
+        onOpenChange={(open) => !open && setProfileJid(null)}
+        instanceId={instanceId}
+        instanceName={instance?.name}
+        remoteJid={profileJid || undefined}
+        fallbackName={
+          profileJid
+            ? liveProfiles.get(profileJid)?.name || contacts.find((item) => item.remoteJid === profileJid)?.pushName || formatJid(profileJid)
+            : undefined
+        }
+        fallbackPicture={
+          profileJid ? liveProfiles.get(profileJid)?.picture || contacts.find((item) => item.remoteJid === profileJid)?.profilePicUrl : undefined
+        }
+        connected={instance?.connectionStatus === "open"}
+      />
     </div>
   );
 }

@@ -129,7 +129,8 @@
     "all": "Todos",
     "open": "Conectado",
     "connecting": "Conectando",
-    "closed": "Desconectado"
+    "closed": "Desconectado",
+    "unconfigured": "Não configurado"
   },
   "footer": {
     "clientName": "Nome do Cliente",
@@ -261,9 +262,11 @@
         },
         "restart": "Reiniciar",
         "disconnect": "Desconectar",
-        "sendMessage": "Enviar mensagem"
+        "sendMessage": "Enviar mensagem",
+        "configure": "Configurar"
       },
       "alert": "Para conectar, escaneie o QR Code com o WhatsApp",
+      "unconfigured": "Nenhuma conta WhatsApp configurada",
       "contacts": "Contatos",
       "chats": "Chats",
       "messages": "Mensagens"

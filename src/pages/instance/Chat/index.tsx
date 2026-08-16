@@ -19,6 +19,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { ContactProfileDialog } from "@/components/contact-profile-dialog";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +27,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useInstance } from "@/contexts/InstanceContext";
 
 import { useFindChats } from "@/lib/queries/chat/findChats";
+import { useLiveProfiles } from "@/lib/queries/chat/fetchProfile";
 import { getToken, TOKEN_ID } from "@/lib/queries/token";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +72,7 @@ function Chat() {
   const [onlyOpenWindow, setOnlyOpenWindow] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState("");
+  const [profileJid, setProfileJid] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const { data: chats, refetch: refetchChats, isFetching: syncing } = useFindChats({ instanceName: instance?.name });
@@ -93,6 +96,8 @@ function Chat() {
       return bTime - aTime;
     });
   }, [chats, realtimeChats]);
+
+  const liveProfiles = useLiveProfiles(instance?.name, allChats, instance?.connectionStatus === "open");
 
   const { instanceId, remoteJid } = useParams<{ instanceId: string; remoteJid: string }>();
   const navigate = useNavigate();
@@ -366,8 +371,14 @@ function Chat() {
             </div>
           ) : (
             visibleChats.map((chat) => {
+              const live = liveProfiles.get(chat.remoteJid);
+              const hydrated = {
+                ...chat,
+                pushName: live?.name || chat.pushName,
+                profilePicUrl: live?.picture || chat.profilePicUrl,
+              };
               const selected = remoteJid === chat.remoteJid;
-              const name = displayName(chat);
+              const name = displayName(hydrated);
               const preview = lastMessagePreview(chat.lastMessage);
               const unread = chat.unreadCount || 0;
               const labels = chatLabels(chat.labels);
@@ -380,12 +391,29 @@ function Chat() {
                   onClick={() => handleChat(chat.remoteJid)}
                   className={cn("inbox-item", selected && "inbox-item-active")}
                 >
-                  <Avatar className="h-11 w-11 flex-shrink-0">
-                    <AvatarImage src={chat.profilePicUrl} alt={name} />
-                    <AvatarFallback className="bg-muted text-muted-foreground">
-                      {group ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
-                    </AvatarFallback>
-                  </Avatar>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="flex-shrink-0"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setProfileJid(chat.remoteJid);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        setProfileJid(chat.remoteJid);
+                      }
+                    }}
+                  >
+                    <Avatar className="h-11 w-11">
+                      <AvatarImage src={hydrated.profilePicUrl} alt={name} />
+                      <AvatarFallback className="bg-muted text-muted-foreground">
+                        {group ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
+                      </AvatarFallback>
+                    </Avatar>
+                  </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <p className="truncate font-medium text-foreground">{name}</p>
@@ -503,6 +531,21 @@ function Chat() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ContactProfileDialog
+        open={!!profileJid}
+        onOpenChange={(open) => !open && setProfileJid(null)}
+        instanceId={instanceId}
+        instanceName={instance?.name}
+        remoteJid={profileJid || undefined}
+        fallbackName={profileJid ? displayName({
+          pushName: liveProfiles.get(profileJid)?.name || allChats.find((item) => item.remoteJid === profileJid)?.pushName || "",
+          remoteJid: profileJid,
+        }) : undefined}
+        fallbackPicture={profileJid ? liveProfiles.get(profileJid)?.picture || allChats.find((item) => item.remoteJid === profileJid)?.profilePicUrl : undefined}
+        connected={instance?.connectionStatus === "open"}
+        showChatButton={profileJid !== remoteJid}
+      />
     </>
   );
 }

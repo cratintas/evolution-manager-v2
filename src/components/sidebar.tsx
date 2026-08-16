@@ -198,7 +198,9 @@ function InstanceSidebar() {
         <p className="truncate text-[11px] text-sidebar-foreground/70">
           {instance?.connectionStatus === "open"
             ? t("status.open")
-            : instance?.connectionStatus || t("sidebar.accountIdle", { defaultValue: "Sem conexão" })}
+            : instance?.ownerJid
+              ? t("status.closed")
+              : t("status.unconfigured", { defaultValue: "Não configurado" })}
         </p>
       </div>
     </div>
