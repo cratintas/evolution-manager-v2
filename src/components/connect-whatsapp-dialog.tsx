@@ -34,6 +34,8 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const startedRef = useRef(false);
+  const startedAtRef = useRef(0);
+  const CONNECT_TIMEOUT_MS = 60_000;
 
   const qrColor = useMemo(() => (resolvedTheme === "dark" ? "#e8f0ec" : "#17241d"), [resolvedTheme]);
 
@@ -51,6 +53,8 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
     }
     setBusy(true);
     setError("");
+    startedAtRef.current = Date.now();
+    startedRef.current = true;
     try {
       const params = wantPairing ? { number: pairingNumber.replace(/\D/g, "") || undefined } : undefined;
       const { data } = await api.get(`/instance/connect/${instance.name}`, {
@@ -84,9 +88,11 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
       setError("");
       setBusy(false);
       startedRef.current = false;
+      startedAtRef.current = 0;
       return;
     }
     setPairingNumber(instance.number || "");
+    startedAtRef.current = Date.now();
     void requestConnect(false);
   }, [open, instance.name]);
 
@@ -96,6 +102,16 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
     let cancelled = false;
     const tick = async () => {
       if (!startedRef.current || busy) return;
+      if (startedAtRef.current && Date.now() - startedAtRef.current >= CONNECT_TIMEOUT_MS) {
+        startedRef.current = false;
+        setQrCode(null);
+        setError(
+          t("instance.dashboard.connect.timeout", {
+            defaultValue: "Tempo de conexão esgotado (1 minuto). Tente novamente mais tarde para evitar bloqueio do WhatsApp.",
+          }),
+        );
+        return;
+      }
       try {
         const { data } = await api.get(`/instance/connectionState/${instance.name}`, {
           headers: { apikey: token },
@@ -106,6 +122,16 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
           toast.success(t("instance.dashboard.connect.success", { defaultValue: "WhatsApp conectado." }));
           await onConnected?.();
           onOpenChange(false);
+          return;
+        }
+        if (state === "refused" || (state === "close" && startedAtRef.current && Date.now() - startedAtRef.current >= CONNECT_TIMEOUT_MS)) {
+          startedRef.current = false;
+          setQrCode(null);
+          setError(
+            t("instance.dashboard.connect.timeout", {
+              defaultValue: "Tempo de conexão esgotado (1 minuto). Tente novamente mais tarde para evitar bloqueio do WhatsApp.",
+            }),
+          );
           return;
         }
         if (state === "connecting") {

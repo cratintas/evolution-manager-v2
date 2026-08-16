@@ -40,7 +40,6 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
   const goToSettings = () => navigate(`/manager/instance/${instance.id}/settings`);
   const connected = instance.connectionStatus === "open";
   const configured = connected || Boolean(instance.ownerJid);
-  const canTest = connected;
 
   return (
     <Card className="flex flex-col overflow-hidden rounded-2xl border-border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-black/10">
@@ -96,17 +95,28 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-border bg-muted/40 p-3">
-          {!connected && (
-            <Button size="sm" className="rounded-full" onClick={() => setConnectOpen(true)}>
-              <QrCode className="mr-1.5 h-4 w-4" />
-              {configured
-                ? t("instance.dashboard.button.qrcode.label")
-                : t("instance.dashboard.button.configure", { defaultValue: "Configurar" })}
+        <div className="border-t border-border bg-muted/40">
+          <div className="flex flex-wrap items-center gap-2 p-3">
+            {!connected && (
+              <Button size="sm" className="rounded-full" onClick={() => setConnectOpen(true)}>
+                <QrCode className="mr-1.5 h-4 w-4" />
+                {configured
+                  ? t("instance.dashboard.button.qrcode.label")
+                  : t("instance.dashboard.button.configure", { defaultValue: "Configurar" })}
+              </Button>
+            )}
+            <Button
+              size="icon"
+              variant="outline"
+              className="ml-auto h-9 w-9 rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-600"
+              disabled={isDeleting}
+              onClick={() => onDelete(instance)}
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
-          )}
-          {configured && (
-            <>
+          </div>
+          {connected && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border px-3 pb-3 pt-2">
               <Button size="sm" variant="outline" className="rounded-full" onClick={goToSettings}>
                 <Settings className="mr-1.5 h-4 w-4" />
                 {t("dashboard.settings")}
@@ -115,23 +125,13 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
                 size="icon"
                 variant="outline"
                 className="h-9 w-9 rounded-full text-muted-foreground"
-                disabled={!canTest}
-                title={canTest ? t("testInteractive.title") : t("testInteractive.requiresOpen")}
+                title={t("testInteractive.title")}
                 onClick={() => setTestOpen(true)}
               >
                 <FlaskConical className="h-4 w-4" />
               </Button>
-            </>
+            </div>
           )}
-          <Button
-            size="icon"
-            variant="outline"
-            className="ml-auto h-9 w-9 rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-600"
-            disabled={isDeleting}
-            onClick={() => onDelete(instance)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       </CardContent>
 

@@ -1,10 +1,13 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
+import { isPlaceholderName } from "@/pages/instance/Chat/chat-utils";
+
 import { api } from "../api";
 
 export type WhatsAppProfile = {
   wuid?: string;
+  number?: string;
   name?: string;
   picture?: string | null;
   status?: string | null;
@@ -15,6 +18,13 @@ export type WhatsAppProfile = {
   description?: string;
   website?: string;
   email?: string;
+  address?: string;
+  category?: string;
+  handle?: string;
+  hours?: {
+    timezone?: string;
+    config?: Record<string, Array<{ mode?: string; openTimeInMinutes?: number; closeTimeInMinutes?: number }>> | Array<{ day_of_week?: string; mode?: string; open_time?: number; close_time?: number }>;
+  };
 };
 
 export const fetchWhatsAppProfile = async ({ instanceName, number }: { instanceName: string; number: string }) => {
@@ -48,7 +58,7 @@ export const useLiveProfiles = (
 ) => {
   const targets = useMemo(() => {
     if (!enabled || !instanceName) return [];
-    return contacts.filter((contact) => !contact.profilePicUrl || !contact.pushName?.trim()).slice(0, 16);
+    return contacts.filter((contact) => !contact.profilePicUrl || isPlaceholderName(contact.pushName, contact.remoteJid)).slice(0, 6);
   }, [contacts, enabled, instanceName]);
 
   const results = useQueries({
@@ -62,14 +72,15 @@ export const useLiveProfiles = (
   });
 
   return useMemo(() => {
-    const map = new Map<string, { name?: string; picture?: string; verified?: boolean; isBusiness?: boolean }>();
+    const map = new Map<string, { name?: string; picture?: string; number?: string; verified?: boolean; isBusiness?: boolean }>();
     targets.forEach((contact, index) => {
       const data = results[index]?.data;
       if (!data) return;
       map.set(contact.remoteJid, {
         name: data.name || data.verifiedName || undefined,
         picture: data.picture || undefined,
-        verified: Boolean(data.verified || data.verifiedName),
+        number: data.number || (data.wuid && !data.wuid.includes("@lid") ? data.wuid : undefined),
+        verified: Boolean(data.verified),
         isBusiness: Boolean(data.isBusiness),
       });
     });

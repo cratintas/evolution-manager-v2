@@ -48,6 +48,8 @@ export type Contact = {
   id: string;
   pushName: string;
   remoteJid: string;
+  phone?: string | null;
+  phoneJid?: string | null;
   profilePicUrl: string;
   createdAt: string;
   updatedAt: string;
@@ -69,6 +71,8 @@ export type Chat = {
   id: string;
   pushName: string;
   remoteJid: string;
+  phone?: string | null;
+  phoneJid?: string | null;
   labels: string[] | Record<string, unknown> | null;
   profilePicUrl: string;
   createdAt: string;
@@ -80,12 +84,14 @@ export type Chat = {
   windowStart?: string;
   windowExpires?: string;
   isSaved?: boolean;
+  archived?: boolean;
 };
 
 export type Key = {
   id: string;
   fromMe: boolean;
   remoteJid: string;
+  remoteJidAlt?: string;
   participant?: string;
 };
 
@@ -99,11 +105,17 @@ export type Message = {
   messageTimestamp: string;
   instanceId: string;
   source: string;
+  status?: string | number;
+  MessageUpdate?: { status?: string }[];
 };
 
 export type SendText = {
   number: string;
   text: string;
+  quoted?: {
+    key: Key;
+    message?: unknown;
+  };
   options?: {
     delay?: number;
     presence?: string;

@@ -6,11 +6,14 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@evoapi/de
 import { CircleUser, LogOut, MessageCircle, QrCode, Send, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { BaseHeader } from "@/components/base-header";
 import { ConnectWhatsAppDialog } from "@/components/connect-whatsapp-dialog";
 import { InstanceStatus } from "@/components/instance-status";
 import { InstanceToken } from "@/components/instance-token";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import { useInstance } from "@/contexts/InstanceContext";
@@ -19,6 +22,7 @@ import { useManageInstance } from "@/lib/queries/instance/manageInstance";
 import { getProvider, TOKEN_ID } from "@/lib/queries/token";
 
 import { formatWhatsAppNumber } from "@/pages/instance/Chat/chat-utils";
+import { Instance } from "@/types/evolution.types";
 
 import { GoQrCodeModal } from "./GoQrCodeModal";
 import { GoSendMessageModal } from "./GoSendMessageModal";
@@ -29,7 +33,10 @@ function DashboardInstance() {
   const [qrOpen, setQrOpen] = useState(false);
   const [goQrOpen, setGoQrOpen] = useState(false);
   const [goSendOpen, setGoSendOpen] = useState(false);
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const isGo = getProvider() === "go";
+  const queryClient = useQueryClient();
 
   const { logout } = useManageInstance();
   const { instance, reloadInstance } = useInstance();
@@ -42,12 +49,35 @@ function DashboardInstance() {
     }
   }, [instance]);
 
-  const handleLogout = async (instanceName: string) => {
+  const markDisconnected = () => {
+    if (!instance) return;
+    queryClient.setQueryData(
+      ["instance", "fetchInstance", JSON.stringify({ instanceId: instance.id })],
+      (current: Instance | undefined) => (current ? { ...current, connectionStatus: "close" } : current),
+    );
+    queryClient.setQueryData(["instance", "fetchInstances"], (current: Instance[] | undefined) =>
+      Array.isArray(current)
+        ? current.map((item) =>
+            item.id === instance.id || item.name === instance.name ? { ...item, connectionStatus: "close" } : item,
+          )
+        : current,
+    );
+  };
+
+  const handleLogout = async () => {
+    if (!instance || disconnecting) return;
+    setDisconnectOpen(false);
+    markDisconnected();
+    setDisconnecting(true);
     try {
-      await logout(instanceName);
-      await reloadInstance();
+      await logout(instance.name);
+      toast.success(t("instance.dashboard.disconnect.success", { defaultValue: "WhatsApp desconectado." }));
     } catch (error) {
       console.error("Error:", error);
+      toast.error(t("instance.dashboard.disconnect.error", { defaultValue: "Não foi possível desconectar a conta." }));
+    } finally {
+      setDisconnecting(false);
+      await reloadInstance();
     }
   };
 
@@ -80,9 +110,11 @@ function DashboardInstance() {
                 ...(connected
                   ? [
                       {
-                        label: t("instance.dashboard.button.disconnect", { defaultValue: "Desconectar" }),
+                        label: disconnecting
+                          ? t("instance.dashboard.disconnect.working", { defaultValue: "Desconectando..." })
+                          : t("instance.dashboard.button.disconnect", { defaultValue: "Desconectar" }),
                         icon: <LogOut className="h-4 w-4" />,
-                        onClick: () => handleLogout(instance.name),
+                        onClick: () => setDisconnectOpen(true),
                         variant: "destructive" as const,
                       },
                     ]
@@ -123,7 +155,7 @@ function DashboardInstance() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col items-start space-y-4">
-            {configured && (
+            {connected && (
               <div className="w-full">
                 <InstanceToken token={instance.token} />
               </div>
@@ -163,6 +195,27 @@ function DashboardInstance() {
         </Card>
 
         {isGo && <GoSendMessageModal open={goSendOpen} onOpenChange={setGoSendOpen} />}
+
+        <Dialog open={disconnectOpen} onOpenChange={setDisconnectOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("instance.dashboard.disconnect.title", { defaultValue: "Desconectar WhatsApp?" })}</DialogTitle>
+              <DialogDescription>
+                {t("instance.dashboard.disconnect.description", {
+                  defaultValue: "A sessão da conta será encerrada. Você precisará escanear o QR Code para conectar de novo.",
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDisconnectOpen(false)}>
+                {t("button.cancel")}
+              </Button>
+              <Button type="button" variant="destructive" onClick={() => void handleLogout()}>
+                {t("instance.dashboard.button.disconnect", { defaultValue: "Desconectar" })}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {configured && <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Card className="border-border bg-card text-card-foreground">

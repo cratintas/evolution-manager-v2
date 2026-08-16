@@ -127,20 +127,25 @@ function InstanceSidebar() {
   const { pathname } = useLocation();
 
   const base = instance ? `/manager/instance/${instance.id}` : "";
+  const connected = instance?.connectionStatus === "open";
 
   const menus: Menu[] = useMemo(
     () => [
       { id: "dashboard", title: t("sidebar.dashboard"), icon: LayoutDashboard, path: "dashboard" },
       { id: "chat", title: t("sidebar.chat"), icon: MessageCircle, path: "chat" },
       { id: "contacts", title: t("sidebar.contacts"), icon: ContactRound, path: "contacts" },
-      {
-        title: t("sidebar.configurations"),
-        icon: Cog,
-        children: [
-          { id: "settings", title: t("sidebar.settings"), path: "settings" },
-          { id: "proxy", title: t("sidebar.proxy"), path: "proxy" },
-        ],
-      },
+      ...(connected
+        ? [
+            {
+              title: t("sidebar.configurations"),
+              icon: Cog,
+              children: [
+                { id: "settings", title: t("sidebar.settings"), path: "settings" },
+                { id: "proxy", title: t("sidebar.proxy"), path: "proxy" },
+              ],
+            } satisfies Menu,
+          ]
+        : []),
       {
         title: t("sidebar.events"),
         icon: IterationCcw,
@@ -166,7 +171,7 @@ function InstanceSidebar() {
         ],
       },
     ],
-    [t],
+    [t, connected],
   );
 
   const visibleMenus = useMemo(
@@ -215,7 +220,7 @@ function InstanceSidebar() {
         </>
       }
     >
-      <NavItem to="/manager" icon={LayoutDashboard} label={`← ${t("dashboard.title")}`} />
+      <NavItem to="/manager" label={`← ${t("dashboard.title")}`} />
       <div className="my-2 border-t border-sidebar-border" />
       {visibleMenus.map((menu) => {
         if ("children" in menu) {
@@ -228,7 +233,6 @@ function InstanceSidebar() {
                   groupActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
-                <menu.icon className={cn("h-5 w-5 flex-shrink-0", groupActive && "text-sidebar-primary")} />
                 <span>{menu.title}</span>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
@@ -251,7 +255,7 @@ function InstanceSidebar() {
             </Collapsible>
           );
         }
-        return <NavItem key={menu.id} to={`${base}/${menu.path}`} icon={menu.icon} label={menu.title} />;
+        return <NavItem key={menu.id} to={`${base}/${menu.path}`} label={menu.title} />;
       })}
     </SidebarShell>
   );

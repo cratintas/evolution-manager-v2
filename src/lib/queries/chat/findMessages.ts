@@ -51,7 +51,7 @@ export const useFindMessages = (props: UseQueryParams<FindMessagesPage> & Partia
     initialPageParam: 1,
     getNextPageParam: (lastPage) => (lastPage.currentPage < lastPage.pages ? lastPage.currentPage + 1 : undefined),
     enabled: !!instanceName && !!remoteJid,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     ...rest,
   });
 };

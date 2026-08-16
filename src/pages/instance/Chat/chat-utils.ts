@@ -5,18 +5,48 @@ export const formatJid = (remoteJid?: string): string => {
   return remoteJid.split("@")[0].split(":")[0];
 };
 
+export const isLidJid = (jid?: string): boolean => !!jid?.includes("@lid");
+
+export const isPlaceholderName = (name?: string | null, jid?: string): boolean => {
+  if (!name) return true;
+  const normalized = name.trim().toLowerCase();
+  if (!normalized || normalized === "você" || normalized === "voce" || normalized === "you") return true;
+  const digits = normalized.replace(/\D/g, "");
+  if (digits.length > 15) return true;
+  if (jid && formatJid(jid) === digits) return true;
+  return false;
+};
+
+export const isPublicPhone = (input?: string): boolean => {
+  if (!input || isLidJid(input) || input.includes("@g.us") || input.includes("@broadcast") || input.includes("@hosted")) {
+    return false;
+  }
+  const digits = formatJid(input).replace(/\D/g, "");
+  if (digits.length < 10 || digits.length > 15) return false;
+  if (digits.startsWith("55")) return digits.length === 12 || digits.length === 13;
+  return true;
+};
+
+export const publicPhoneFrom = (...candidates: Array<string | null | undefined>): string => {
+  for (const candidate of candidates) {
+    if (isPublicPhone(candidate)) return candidate as string;
+  }
+  return "";
+};
+
 export const formatWhatsAppNumber = (input?: string): string => {
   if (!input) return "";
   if (input.includes("@g.us") || input.includes("@broadcast")) return formatJid(input);
+  if (isLidJid(input) || !isPublicPhone(input)) return "";
 
   const digits = formatJid(input).replace(/\D/g, "");
-  if (!digits) return input;
+  if (!digits) return "";
 
   if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) {
     const ddd = digits.slice(2, 4);
     const local = digits.slice(4);
-    if (local.length === 9) return `55 ${ddd} ${local.slice(0, 5)}-${local.slice(5)}`;
-    return `55 ${ddd} ${local.slice(0, 4)}-${local.slice(4)}`;
+    if (local.length === 9) return `+55 ${ddd} ${local.slice(0, 5)}-${local.slice(5)}`;
+    return `+55 ${ddd} ${local.slice(0, 4)}-${local.slice(4)}`;
   }
 
   if (digits.startsWith("1") && digits.length === 11) {
@@ -63,8 +93,18 @@ export const formatWhatsAppNumber = (input?: string): string => {
 
 export const isGroupJid = (remoteJid?: string): boolean => !!remoteJid?.includes("@g.us");
 
-export const displayName = (chat: Pick<Chat, "pushName" | "remoteJid">): string =>
-  chat.pushName?.trim() || formatWhatsAppNumber(chat.remoteJid) || "Contato";
+export const displayNumber = (
+  chat?: Pick<Chat, "remoteJid" | "phone" | "phoneJid"> | null,
+  extra?: string,
+): string => {
+  const phone = publicPhoneFrom(chat?.phone, chat?.phoneJid, extra, chat?.remoteJid);
+  return formatWhatsAppNumber(phone);
+};
+
+export const displayName = (chat: Pick<Chat, "pushName" | "remoteJid" | "phone" | "phoneJid">): string => {
+  if (!isPlaceholderName(chat.pushName, chat.remoteJid)) return chat.pushName.trim();
+  return displayNumber(chat) || "Contato";
+};
 
 export const chatLabels = (labels?: Chat["labels"]): string[] => {
   if (!labels) return [];
@@ -98,13 +138,28 @@ const extractText = (payload: unknown): string => {
   if (extended?.text) return extended.text;
 
   if (message.imageMessage) return "Imagem";
+  if (message.videoMessage?.gifPlayback) return "GIF";
   if (message.videoMessage) return "Vídeo";
+  if (message.ptvMessage) return "Vídeo";
   if (message.audioMessage) return "Áudio";
-  if (message.documentMessage) return "Documento";
+  if (message.documentMessage || message.documentWithCaptionMessage) return "Documento";
   if (message.stickerMessage) return "Figurinha";
-  if (message.contactMessage) return "Contato";
-  if (message.locationMessage) return "Localização";
+  if (message.contactMessage || message.contactsArrayMessage) return "Contato";
+  if (message.locationMessage || message.liveLocationMessage) return "Localização";
   if (message.reactionMessage) return "Reação";
+  if (message.templateMessage) {
+    const template = message.templateMessage.hydratedTemplate || message.templateMessage.hydratedFourRowTemplate;
+    return template?.hydratedContentText || template?.hydratedTitleText || "Modelo";
+  }
+  if (message.interactiveMessage?.body?.text) return message.interactiveMessage.body.text;
+  if (message.buttonsMessage?.contentText) return message.buttonsMessage.contentText;
+  if (message.listMessage?.description || message.listMessage?.title) {
+    return message.listMessage.description || message.listMessage.title;
+  }
+  if (message.ephemeralMessage?.message) return extractText(message.ephemeralMessage.message);
+  if (message.viewOnceMessage?.message || message.viewOnceMessageV2?.message) {
+    return extractText(message.viewOnceMessage?.message || message.viewOnceMessageV2?.message);
+  }
 
   return "";
 };
@@ -114,11 +169,24 @@ export const lastMessagePreview = (lastMessage?: ChatLastMessage): string => {
   const type = lastMessage.messageType;
   if (type === "imageMessage") return "Imagem";
   if (type === "videoMessage") return "Vídeo";
+  if (type === "ptvMessage") return "Vídeo";
   if (type === "audioMessage") return "Áudio";
-  if (type === "documentMessage") return "Documento";
+  if (type === "documentMessage" || type === "documentWithCaptionMessage") return "Documento";
   if (type === "stickerMessage") return "Figurinha";
+  if (type === "templateMessage") return extractText(lastMessage.message) || "Modelo";
+  if (type === "interactiveMessage" || type === "buttonsMessage" || type === "listMessage") {
+    return extractText(lastMessage.message) || "Mensagem interativa";
+  }
   const text = extractText(lastMessage.message);
   return text || "Mensagem";
+};
+
+export const ARCHIVE_LABEL = "archived";
+
+export const isArchivedChat = (chat?: Pick<Chat, "labels" | "archived"> | null): boolean => {
+  if (!chat) return false;
+  if (chat.archived) return true;
+  return chatLabels(chat.labels).some((label) => label.toLowerCase() === ARCHIVE_LABEL);
 };
 
 export const parseTimestamp = (value?: string | number | Date | null): Date | null => {

@@ -12,7 +12,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { useInstance } from "@/contexts/InstanceContext";
 import { useFindContacts } from "@/lib/queries/chat/findContacts";
 import { useLiveProfiles } from "@/lib/queries/chat/fetchProfile";
-import { formatJid, formatWhatsAppNumber } from "@/pages/instance/Chat/chat-utils";
+import { displayNumber, formatJid, formatWhatsAppNumber, isPlaceholderName } from "@/pages/instance/Chat/chat-utils";
 
 function Contacts() {
   const { t } = useTranslation();
@@ -74,7 +74,7 @@ function Contacts() {
           <ul className="divide-y">
             {visible.map((contact) => {
               const live = liveProfiles.get(contact.remoteJid);
-              const name = live?.name || contact.pushName || formatJid(contact.remoteJid);
+              const name = live?.name || (!isPlaceholderName(contact.pushName) ? contact.pushName : "") || formatWhatsAppNumber(contact.phone || contact.phoneJid || contact.remoteJid) || formatJid(contact.remoteJid);
               const picture = live?.picture || contact.profilePicUrl;
               return (
               <li key={contact.id || contact.remoteJid} className="flex items-center justify-between gap-3 px-6 py-3">
@@ -87,7 +87,7 @@ function Contacts() {
                   </Avatar>
                   <div className="min-w-0">
                     <p className="truncate font-medium">{name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{formatWhatsAppNumber(contact.remoteJid)}</p>
+                    <p className="truncate text-sm text-muted-foreground">{displayNumber(contact, live?.number) || formatWhatsAppNumber(contact.remoteJid)}</p>
                   </div>
                 </button>
                 <Button
@@ -112,7 +112,10 @@ function Contacts() {
         remoteJid={profileJid || undefined}
         fallbackName={
           profileJid
-            ? liveProfiles.get(profileJid)?.name || contacts.find((item) => item.remoteJid === profileJid)?.pushName || formatJid(profileJid)
+            ? liveProfiles.get(profileJid)?.name ||
+              contacts.find((item) => item.remoteJid === profileJid)?.pushName ||
+              displayNumber(contacts.find((item) => item.remoteJid === profileJid), liveProfiles.get(profileJid)?.number) ||
+              formatWhatsAppNumber(profileJid)
             : undefined
         }
         fallbackPicture={
