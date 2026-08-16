@@ -35,7 +35,11 @@ export async function checkLicenseStatus(apiUrl: string, apiKey?: string): Promi
   const res = await axios.get<LicenseStatus>(buildUrl(apiUrl, "/license/status"), {
     headers,
     timeout: HTTP_TIMEOUT,
+    validateStatus: (status) => status >= 200 && status < 300,
   });
+  if (!res.data || (res.data.status !== "active" && res.data.status !== "inactive")) {
+    throw new Error("License endpoint is not available on this server");
+  }
   return res.data;
 }
 

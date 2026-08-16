@@ -26,6 +26,14 @@ const loginSchema = z.object({
 });
 type LoginSchema = z.infer<typeof loginSchema>;
 
+function defaultServerUrl() {
+  const { protocol, hostname, port } = window.location;
+  if (port === "5173" || port === "3000") {
+    return `${protocol}//${hostname}:8080`;
+  }
+  return `${protocol}//${window.location.host}`;
+}
+
 function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -41,7 +49,7 @@ function Login() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       provider: DEFAULT_PROVIDER,
-      serverUrl: window.location.protocol + "//" + window.location.host,
+      serverUrl: defaultServerUrl(),
       apiKey: "",
     },
   });
@@ -52,34 +60,24 @@ function Login() {
     try {
       const cleanUrl = data.serverUrl.replace(/\/+$/, "");
 
-      // 1. License gate FIRST — same flow evolution-go-manager uses.
-      // Only attempts the check on the API provider; the GO branch keeps its own flow.
-      if (data.provider === "api") {
+      if (data.provider === "go") {
         try {
           const lic = await checkLicenseStatus(cleanUrl, data.apiKey);
           if (lic.status !== "active") {
             const callbackUrl = `${window.location.origin}/manager/license/callback`;
             const reg = await initRegister(callbackUrl, cleanUrl, data.apiKey);
-
             if (!reg.register_url) {
-              const msg = reg.message || t("license.registerFailed");
-              setLoginError(msg);
+              setLoginError(reg.message || t("license.registerFailed"));
               return;
             }
-
-            // Save credentials so the callback page knows where to call /license/activate.
-            saveToken({ url: cleanUrl, token: data.apiKey, provider: "api" });
+            saveToken({ url: cleanUrl, token: data.apiKey, provider: "go" });
             window.location.href = reg.register_url;
             return;
           }
         } catch (err) {
-          // If /license/* itself is unreachable, fall through to the normal login flow —
-          // older Evolution API builds without the licensing module behave this way.
           console.warn("[license] status check skipped:", err);
         }
-      }
 
-      if (data.provider === "go") {
         const ok = await verifyGoServer({ url: cleanUrl, token: data.apiKey });
         if (!ok) {
           logout();
@@ -171,7 +169,7 @@ function Login() {
                 <Input
                   id="login-serverUrl"
                   type="text"
-                  placeholder={window.location.origin}
+                  placeholder={defaultServerUrl()}
                   disabled={submitting}
                   {...loginForm.register("serverUrl")}
                 />
