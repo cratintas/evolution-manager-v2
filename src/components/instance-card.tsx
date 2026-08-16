@@ -33,6 +33,7 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
   const numberFormatter = new Intl.NumberFormat(i18n.language);
   const displayName = instance.profileName || instance.name;
   const goToInstance = () => navigate(`/manager/instance/${instance.id}/dashboard`);
+  const goToSettings = () => navigate(`/manager/instance/${instance.id}/settings`);
   const connected = instance.connectionStatus === "open";
   const canTest = connected;
 
@@ -97,7 +98,7 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
               {t("instance.dashboard.button.qrcode.label")}
             </Button>
           )}
-          <Button size="sm" variant="outline" className="rounded-full" onClick={goToInstance}>
+          <Button size="sm" variant="outline" className="rounded-full" onClick={goToSettings}>
             <Settings className="mr-1.5 h-4 w-4" />
             {t("dashboard.settings")}
           </Button>
