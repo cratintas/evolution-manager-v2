@@ -181,6 +181,8 @@ export function TestInteractiveModal({ instance, open, onOpenChange }: TestInter
     { key: "carousel", label: t("testInteractive.tabs.carousel") },
   ];
 
+  if (!open) return null;
+
   return (
     <Dialog open={open} onOpenChange={(o) => !sending && onOpenChange(o)}>
       <DialogContent className="max-w-2xl">

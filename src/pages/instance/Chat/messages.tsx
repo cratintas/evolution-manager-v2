@@ -292,16 +292,14 @@ const MessageContent = ({ message }: { message: Message }) => {
     case "stickerMessage":
       return <img src={message.message.mediaUrl} alt="Sticker" className="max-w-32 max-h-32 object-contain" />;
 
-    default:
-      // Fallback for unknown message types
+    default: {
+      const preview = getMessageText(message.message);
       return (
-        <div className="text-xs text-muted-foreground bg-muted p-2 rounded max-w-xs">
-          <details>
-            <summary>Unknown message type: {messageType}</summary>
-            <pre className="mt-2 whitespace-pre-wrap break-all text-xs">{JSON.stringify(message.message, null, 2)}</pre>
-          </details>
-        </div>
+        <span className="text-sm">
+          {preview || "Mensagem não suportada"}
+        </span>
       );
+    }
   }
 };
 
