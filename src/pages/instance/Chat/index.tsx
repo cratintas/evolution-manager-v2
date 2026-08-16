@@ -46,7 +46,13 @@ import {
 } from "./chat-utils";
 import { Messages } from "./messages";
 
-type InboxFilter = "active" | "all" | "groups";
+type InboxFilter = "all" | "active" | "groups";
+
+function conversationCountLabel(count: number, t: (key: string, opts?: Record<string, unknown>) => string) {
+  if (count === 0) return t("chat.count.zero", { defaultValue: "Nenhuma conversa" });
+  if (count === 1) return t("chat.count.one", { defaultValue: "1 conversa" });
+  return t("chat.count.other", { count, defaultValue: "{{count}} conversas" });
+}
 
 function Chat() {
   const { t, i18n } = useTranslation();
@@ -58,15 +64,17 @@ function Chat() {
 
   const [realtimeChats, setRealtimeChats] = useState<ChatType[]>([]);
   const [search, setSearch] = useState("");
-  const [inboxFilter, setInboxFilter] = useState<InboxFilter>("active");
+  const [inboxFilter, setInboxFilter] = useState<InboxFilter>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [onlyUnread, setOnlyUnread] = useState(false);
+  const [onlyOpenWindow, setOnlyOpenWindow] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState("");
 
   const queryClient = useQueryClient();
   const { data: chats, refetch: refetchChats, isFetching: syncing } = useFindChats({ instanceName: instance?.name });
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
-    id: "inbox-chat",
+    id: "inbox-chat-wide",
     storage: typeof window === "undefined" ? undefined : localStorage,
     panelIds: ["list", "thread"],
   });
@@ -203,8 +211,10 @@ function Chat() {
 
   const visibleChats = useMemo(() => {
     const filtered = allChats.filter((c) => {
-      if (inboxFilter === "groups") return isGroupJid(c.remoteJid);
-      if (inboxFilter === "active") return !isGroupJid(c.remoteJid);
+      if (inboxFilter === "groups" && !isGroupJid(c.remoteJid)) return false;
+      if (inboxFilter === "active" && isGroupJid(c.remoteJid)) return false;
+      if (onlyUnread && !(c.unreadCount && c.unreadCount > 0)) return false;
+      if (onlyOpenWindow && !c.windowActive) return false;
       return true;
     });
     if (!search.trim()) return filtered;
@@ -215,7 +225,7 @@ function Chat() {
         c.remoteJid.toLowerCase().includes(q) ||
         lastMessagePreview(c.lastMessage).toLowerCase().includes(q),
     );
-  }, [allChats, inboxFilter, search]);
+  }, [allChats, inboxFilter, search, onlyUnread, onlyOpenWindow]);
 
   const openNewChat = () => {
     const jid = toWhatsappJid(newChatNumber);
@@ -232,8 +242,8 @@ function Chat() {
   const showChat = !!remoteJid;
 
   const filters: { id: InboxFilter; label: string }[] = [
-    { id: "active", label: t("chat.filters.active", { defaultValue: "Ativas" }) },
     { id: "all", label: t("chat.filters.all", { defaultValue: "Todas" }) },
+    { id: "active", label: t("chat.filters.active", { defaultValue: "Ativas" }) },
     { id: "groups", label: t("chat.filters.groups", { defaultValue: "Grupos" }) },
   ];
 
@@ -278,7 +288,7 @@ function Chat() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-8 gap-1"
+                className={cn("h-8 gap-1", (showFilters || onlyUnread || onlyOpenWindow) && "text-primary")}
                 onClick={() => setShowFilters((value) => !value)}
               >
                 <Filter className="h-3.5 w-3.5" />
@@ -304,15 +314,44 @@ function Chat() {
           </div>
 
           {showFilters && (
-            <p className="text-xs text-muted-foreground">
-              {t("chat.filters.hint", {
-                defaultValue: "Ativas mostra conversas individuais. Use Todas para incluir grupos.",
-              })}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={onlyUnread ? "secondary" : "outline"}
+                className={cn("h-7 rounded-full px-3 text-xs", onlyUnread && "bg-primary/10 text-primary")}
+                onClick={() => setOnlyUnread((value) => !value)}
+              >
+                {t("chat.filters.unread", { defaultValue: "Não lidas" })}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={onlyOpenWindow ? "secondary" : "outline"}
+                className={cn("h-7 rounded-full px-3 text-xs", onlyOpenWindow && "bg-primary/10 text-primary")}
+                onClick={() => setOnlyOpenWindow((value) => !value)}
+              >
+                {t("chat.filters.openWindow", { defaultValue: "Janela 24h" })}
+              </Button>
+              {(onlyUnread || onlyOpenWindow) && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 rounded-full px-2 text-xs text-muted-foreground"
+                  onClick={() => {
+                    setOnlyUnread(false);
+                    setOnlyOpenWindow(false);
+                  }}
+                >
+                  {t("chat.filters.clear", { defaultValue: "Limpar" })}
+                </Button>
+              )}
+            </div>
           )}
 
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{t("chat.count", { count: visibleChats.length })}</span>
+            <span>{conversationCountLabel(visibleChats.length, t)}</span>
           </div>
         </div>
 
@@ -416,13 +455,13 @@ function Chat() {
     <>
       {isMD ? (
         <Group
-          id="inbox-chat"
+          id="inbox-chat-wide"
           orientation="horizontal"
           className="inbox-shell"
           defaultLayout={defaultLayout}
           onLayoutChanged={onLayoutChanged}
         >
-          <Panel id="list" defaultSize="22rem" minSize="16rem" maxSize="55%" className="flex min-h-0 min-w-0">
+          <Panel id="list" defaultSize="36rem" minSize="18rem" maxSize="60%" className="flex min-h-0 min-w-0">
             {listPane}
           </Panel>
           <Separator className="inbox-resizer" />

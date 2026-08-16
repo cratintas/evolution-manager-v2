@@ -184,7 +184,10 @@
       "all": "All",
       "groups": "Groups",
       "toggle": "Filters",
-      "hint": "Active shows direct chats. Use All to include groups."
+      "unread": "Unread",
+      "openWindow": "24h window",
+      "clear": "Clear",
+      "hint": "All lists everything. Active shows direct chats. Groups shows only groups."
     },
     "status": {
       "open": "Open conversation",
@@ -202,8 +205,11 @@
       "submit": "Open chat",
       "invalid": "Enter a valid number with country code"
     },
-    "count_one": "{{count}} conversation",
-    "count_other": "{{count}} conversations",
+    "count": {
+      "zero": "No conversations",
+      "one": "1 conversation",
+      "other": "{{count}} conversations"
+    },
     "empty": {
       "default": "No conversations yet",
       "search": "No conversations found",

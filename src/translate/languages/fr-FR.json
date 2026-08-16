@@ -1554,8 +1554,20 @@
       "contacts": "Contacts",
       "groups": "Groupes"
     },
-    "count_one": "{{count}} conversation",
-    "count_other": "{{count}} conversations",
+    "filters": {
+      "active": "Actives",
+      "all": "Toutes",
+      "groups": "Groupes",
+      "toggle": "Filtres",
+      "unread": "Non lues",
+      "openWindow": "Fenêtre 24h",
+      "clear": "Effacer"
+    },
+    "count": {
+      "zero": "Aucune conversation",
+      "one": "1 conversation",
+      "other": "{{count}} conversations"
+    },
     "empty": {
       "default": "Aucune conversation pour le moment",
       "search": "Aucune conversation trouvée",

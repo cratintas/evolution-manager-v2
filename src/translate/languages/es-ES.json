@@ -1555,8 +1555,20 @@
       "contacts": "Contactos",
       "groups": "Grupos"
     },
-    "count_one": "{{count}} conversación",
-    "count_other": "{{count}} conversaciones",
+    "filters": {
+      "active": "Activas",
+      "all": "Todas",
+      "groups": "Grupos",
+      "toggle": "Filtros",
+      "unread": "No leídas",
+      "openWindow": "Ventana 24h",
+      "clear": "Limpiar"
+    },
+    "count": {
+      "zero": "Ninguna conversación",
+      "one": "1 conversación",
+      "other": "{{count}} conversaciones"
+    },
     "empty": {
       "default": "Aún no hay conversaciones",
       "search": "No se encontraron conversaciones",

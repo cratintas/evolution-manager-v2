@@ -1560,7 +1560,10 @@
       "all": "Todas",
       "groups": "Grupos",
       "toggle": "Filtros",
-      "hint": "Ativas mostra conversas individuais. Use Todas para incluir grupos."
+      "unread": "Não lidas",
+      "openWindow": "Janela 24h",
+      "clear": "Limpar",
+      "hint": "Todas lista tudo. Ativas mostra conversas individuais. Grupos mostra apenas grupos."
     },
     "status": {
       "open": "Atendimento em Aberto",
@@ -1578,8 +1581,11 @@
       "submit": "Abrir conversa",
       "invalid": "Informe um número válido com DDI"
     },
-    "count_one": "{{count}} conversa",
-    "count_other": "{{count}} conversas",
+    "count": {
+      "zero": "Nenhuma conversa",
+      "one": "1 conversa",
+      "other": "{{count}} conversas"
+    },
     "empty": {
       "default": "Nenhuma conversa ainda",
       "search": "Nenhuma conversa encontrada",
