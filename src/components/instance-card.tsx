@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { ConnectWhatsAppDialog } from "@/components/connect-whatsapp-dialog";
 import { TestInteractiveModal } from "@/components/test-interactive-modal";
 
+import { formatWhatsAppNumber } from "@/pages/instance/Chat/chat-utils";
 import { Instance } from "@/types/evolution.types";
 
 const StatusBadge = ({ status, configured }: { status?: string; configured?: boolean }) => {
@@ -82,7 +83,7 @@ export function InstanceCard({ instance, isDeleting, onDelete, onChanged }: Inst
           {instance.ownerJid && (
             <div className="flex items-center justify-between">
               <span>{t("dashboard.card.phone", { defaultValue: "Número" })}</span>
-              <span className="ml-2 truncate font-mono">{instance.ownerJid.split("@")[0]}</span>
+              <span className="ml-2 truncate font-mono">{formatWhatsAppNumber(instance.ownerJid)}</span>
             </div>
           )}
           <div className="flex items-center justify-between">

@@ -10,6 +10,8 @@ export type WhatsAppProfile = {
   status?: string | null;
   numberExists?: boolean;
   isBusiness?: boolean;
+  verified?: boolean;
+  verifiedName?: string;
   description?: string;
   website?: string;
   email?: string;
@@ -60,13 +62,15 @@ export const useLiveProfiles = (
   });
 
   return useMemo(() => {
-    const map = new Map<string, { name?: string; picture?: string }>();
+    const map = new Map<string, { name?: string; picture?: string; verified?: boolean; isBusiness?: boolean }>();
     targets.forEach((contact, index) => {
       const data = results[index]?.data;
       if (!data) return;
       map.set(contact.remoteJid, {
-        name: data.name || undefined,
+        name: data.name || data.verifiedName || undefined,
         picture: data.picture || undefined,
+        verified: Boolean(data.verified || data.verifiedName),
+        isBusiness: Boolean(data.isBusiness),
       });
     });
     return map;

@@ -27,7 +27,7 @@ import { connectSocket, disconnectSocket } from "@/services/websocket/socket";
 import { MediaOptions } from "../EmbedChatMessage/InputMessage/media-options";
 import { SelectedMedia } from "../EmbedChatMessage/InputMessage/selected-media";
 
-import { chatLabels, displayName, formatJid, isGroupJid } from "./chat-utils";
+import { chatLabels, displayName, formatJid, formatWhatsAppNumber, isGroupJid } from "./chat-utils";
 
 type MessagesProps = {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -427,24 +427,33 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
     instanceName: instance?.name,
   });
 
-  const { data: messages, isSuccess } = useFindMessages({
+  const {
+    data: messagePages,
+    isSuccess,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFindMessages({
     remoteJid,
     instanceName: instance?.name,
   });
+  const messages = useMemo(() => messagePages?.pages.flatMap((page) => page.records) ?? [], [messagePages]);
+  const scrollBoxRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Combine React Query messages with real-time updates
   const allMessages = useMemo(() => {
-    if (!messages) return realtimeMessages;
+    if (!messages.length) return realtimeMessages;
 
     // Merge messages from React Query with real-time updates
     const messageMap = new Map();
 
     // First add all messages from React Query
-    messages.forEach((message) => messageMap.set(message.key.id, message));
+    messages.forEach((message) => messageMap.set(message.key?.id || message.id, message));
 
     // Then add/update with real-time messages
     realtimeMessages.forEach((message) => {
-      messageMap.set(message.key.id, message);
+      messageMap.set(message.key?.id || message.id, message);
     });
 
     return Array.from(messageMap.values());
@@ -569,6 +578,28 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
   }, [allMessages, t, locale]);
 
   useEffect(() => {
+    const root = scrollBoxRef.current;
+    const target = loadMoreRef.current;
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting || !hasNextPage || isFetchingNextPage) return;
+        const previousHeight = root.scrollHeight;
+        void fetchNextPage().then(() => {
+          requestAnimationFrame(() => {
+            root.scrollTop = root.scrollHeight - previousHeight;
+          });
+        });
+      },
+      { root, threshold: 0.15 },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, remoteJid]);
+
+  useEffect(() => {
     if (isSuccess && allMessages) {
       scrollToBottom();
     }
@@ -620,9 +651,10 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
     number: remoteJid,
     enabled: instance?.connectionStatus === "open" && !!remoteJid && !isGroupJid(remoteJid || ""),
   });
-  const headerName = liveProfile.data?.name?.trim() || (chat ? displayName(chat) : formatJid(remoteJid));
+  const headerName = liveProfile.data?.name?.trim() || liveProfile.data?.verifiedName || (chat ? displayName(chat) : formatWhatsAppNumber(remoteJid));
   const headerPicture = liveProfile.data?.picture || chat?.profilePicUrl;
-  const headerSub = formatJid(chat?.remoteJid || remoteJid);
+  const headerSub = formatWhatsAppNumber(chat?.remoteJid || remoteJid);
+  const headerVerified = Boolean(liveProfile.data?.verified || liveProfile.data?.verifiedName);
   const labels = chatLabels(chat?.labels);
   const isOpenWindow = chat?.windowActive !== false;
 
@@ -695,6 +727,11 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="truncate font-semibold">{headerName}</h3>
+              {headerVerified && (
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white" title={t("contacts.profile.verified", { defaultValue: "Conta verificada" })}>
+                  ✓
+                </span>
+              )}
               {labels.map((label) => (
                 <span key={label} className="inbox-chip">
                   {label}
@@ -714,7 +751,14 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
           {t("chat.conclude.action", { defaultValue: "Concluir" })}
         </Button>
       </div>
-      <div className="flex w-full flex-1 flex-col overflow-y-auto px-4 py-4">
+      <div ref={scrollBoxRef} className="flex w-full flex-1 flex-col overflow-y-auto px-4 py-4">
+        <div ref={loadMoreRef} className="flex justify-center py-2 text-xs text-muted-foreground">
+          {isFetchingNextPage
+            ? t("chat.loadingOlder", { defaultValue: "Carregando mensagens antigas..." })
+            : hasNextPage
+              ? t("chat.loadOlder", { defaultValue: "Role para carregar mensagens antigas" })
+              : null}
+        </div>
         {groupedMessages.map((group, groupIndex) => (
           <div key={groupIndex}>
             <DateSeparator date={group.date} />

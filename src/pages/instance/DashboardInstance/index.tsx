@@ -18,6 +18,8 @@ import { useInstance } from "@/contexts/InstanceContext";
 import { useManageInstance } from "@/lib/queries/instance/manageInstance";
 import { getProvider, TOKEN_ID } from "@/lib/queries/token";
 
+import { formatWhatsAppNumber } from "@/pages/instance/Chat/chat-utils";
+
 import { GoQrCodeModal } from "./GoQrCodeModal";
 import { GoSendMessageModal } from "./GoSendMessageModal";
 
@@ -113,7 +115,7 @@ function DashboardInstance() {
                 <div>
                   <CardTitle className="break-all">{instance.profileName || instance.name}</CardTitle>
                   {instance.ownerJid && (
-                    <p className="mt-1 break-all text-xs text-muted-foreground">{instance.ownerJid.split("@")[0]}</p>
+                    <p className="mt-1 break-all text-xs text-muted-foreground">{formatWhatsAppNumber(instance.ownerJid)}</p>
                   )}
                 </div>
               </div>

@@ -5,10 +5,66 @@ export const formatJid = (remoteJid?: string): string => {
   return remoteJid.split("@")[0].split(":")[0];
 };
 
+export const formatWhatsAppNumber = (input?: string): string => {
+  if (!input) return "";
+  if (input.includes("@g.us") || input.includes("@broadcast")) return formatJid(input);
+
+  const digits = formatJid(input).replace(/\D/g, "");
+  if (!digits) return input;
+
+  if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) {
+    const ddd = digits.slice(2, 4);
+    const local = digits.slice(4);
+    if (local.length === 9) return `55 ${ddd} ${local.slice(0, 5)}-${local.slice(5)}`;
+    return `55 ${ddd} ${local.slice(0, 4)}-${local.slice(4)}`;
+  }
+
+  if (digits.startsWith("1") && digits.length === 11) {
+    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+
+  if (digits.startsWith("351") && digits.length >= 12) {
+    const rest = digits.slice(3);
+    return `+351 ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6)}`.trim();
+  }
+
+  if (digits.startsWith("54") && digits.length >= 12) {
+    const rest = digits.startsWith("549") ? digits.slice(3) : digits.slice(2);
+    const area = rest.slice(0, 2);
+    const local = rest.slice(2);
+    if (local.length === 8) return `+54 9 ${area} ${local.slice(0, 4)}-${local.slice(4)}`;
+    return `+54 ${digits.slice(2, 4)} ${digits.slice(4)}`;
+  }
+
+  if (digits.startsWith("52") && digits.length >= 12) {
+    const rest = digits.startsWith("521") ? digits.slice(3) : digits.slice(2);
+    return `+52 ${rest.slice(0, 2)} ${rest.slice(2, 6)} ${rest.slice(6)}`.trim();
+  }
+
+  if (digits.startsWith("44") && digits.length >= 11) {
+    const rest = digits.slice(2);
+    return `+44 ${rest.slice(0, 4)} ${rest.slice(4)}`;
+  }
+
+  if (digits.startsWith("351")) {
+    return `+${digits}`;
+  }
+
+  const ccLength = digits.length > 11 ? 3 : digits.length > 10 ? 2 : 1;
+  const cc = digits.slice(0, ccLength);
+  const rest = digits.slice(ccLength);
+  const groups: string[] = [];
+  for (let index = 0; index < rest.length; index += rest.length % 3 === 0 ? 3 : 4) {
+    const size = rest.length % 3 === 0 ? 3 : 4;
+    groups.push(rest.slice(index, index + size));
+  }
+  return `+${cc} ${groups.join(" ")}`.trim();
+};
+
 export const isGroupJid = (remoteJid?: string): boolean => !!remoteJid?.includes("@g.us");
 
 export const displayName = (chat: Pick<Chat, "pushName" | "remoteJid">): string =>
-  chat.pushName?.trim() || formatJid(chat.remoteJid) || "Contato";
+  chat.pushName?.trim() || formatWhatsAppNumber(chat.remoteJid) || "Contato";
 
 export const chatLabels = (labels?: Chat["labels"]): string[] => {
   if (!labels) return [];

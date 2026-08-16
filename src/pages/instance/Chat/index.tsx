@@ -42,6 +42,7 @@ import {
   displayName,
   formatJid,
   formatListTime,
+  formatWhatsAppNumber,
   isGroupJid,
   lastMessagePreview,
   toWhatsappJid,
@@ -380,6 +381,7 @@ function Chat() {
               const selected = remoteJid === chat.remoteJid;
               const name = displayName(hydrated);
               const preview = lastMessagePreview(chat.lastMessage);
+              const verified = Boolean(live?.verified);
               const unread = chat.unreadCount || 0;
               const labels = chatLabels(chat.labels);
               const group = isGroupJid(chat.remoteJid);
@@ -416,13 +418,18 @@ function Chat() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="truncate font-medium text-foreground">{name}</p>
+                      <p className="flex min-w-0 items-center gap-1 truncate font-medium text-foreground">
+                        <span className="truncate">{name}</span>
+                        {verified && (
+                          <span className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-sky-500 text-[9px] font-bold text-white">✓</span>
+                        )}
+                      </p>
                       <span className="shrink-0 text-[11px] text-muted-foreground">
                         {formatListTime(chat, i18n.language)}
                       </span>
                     </div>
                     <div className="mt-0.5 flex items-center justify-between gap-2">
-                      <p className="truncate text-sm text-muted-foreground">{preview || formatJid(chat.remoteJid)}</p>
+                      <p className="truncate text-sm text-muted-foreground">{preview || formatWhatsAppNumber(chat.remoteJid)}</p>
                       {unread > 0 && (
                         <span className="inbox-unread">{unread > 99 ? "99+" : unread}</span>
                       )}
