@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from "@evoapi/design-system/button";
 import { Label } from "@evoapi/design-system/label";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 import { toast } from "react-toastify";
@@ -12,7 +12,6 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useTheme } from "@/components/theme-provider";
 
 import { api } from "@/lib/queries/api";
-import { useManageInstance } from "@/lib/queries/instance/manageInstance";
 import { getToken, TOKEN_ID } from "@/lib/queries/token";
 import { connectErrorMessage, extractConnectionState, extractQrPayload } from "@/lib/whatsapp-connect";
 import { connectSocket, disconnectSocket } from "@/services/websocket/socket";
@@ -28,13 +27,13 @@ type ConnectWhatsAppDialogProps = {
 export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnected }: ConnectWhatsAppDialogProps) {
   const { t } = useTranslation();
   const { resolvedTheme } = useTheme();
-  const { connect } = useManageInstance();
-  const token = getToken(TOKEN_ID.INSTANCE_TOKEN) || instance.token || getToken(TOKEN_ID.TOKEN);
+  const token = instance.token || getToken(TOKEN_ID.TOKEN) || "";
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState("");
   const [pairingNumber, setPairingNumber] = useState(instance.number || "");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const startedRef = useRef(false);
 
   const qrColor = useMemo(() => (resolvedTheme === "dark" ? "#e8f0ec" : "#17241d"), [resolvedTheme]);
 
@@ -42,8 +41,7 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
     const qr = extractQrPayload(data);
     if (qr.code) setQrCode(qr.code);
     if (qr.pairingCode) setPairingCode(qr.pairingCode);
-    const state = extractConnectionState(data);
-    return { qr, state };
+    return extractConnectionState(data);
   };
 
   const requestConnect = async (wantPairing: boolean) => {
@@ -54,16 +52,18 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
     setBusy(true);
     setError("");
     try {
-      const data = await connect({
-        instanceName: instance.name,
-        token,
-        number: wantPairing ? pairingNumber.replace(/\D/g, "") || undefined : undefined,
+      const params = wantPairing ? { number: pairingNumber.replace(/\D/g, "") || undefined } : undefined;
+      const { data } = await api.get(`/instance/connect/${instance.name}`, {
+        headers: { apikey: token },
+        params,
+        timeout: 45000,
       });
       if ((data as { error?: boolean })?.error) {
         setError(connectErrorMessage(data, t("instance.dashboard.connect.failed", { defaultValue: "Não foi possível iniciar a conexão." })));
         return;
       }
       applyPayload(data);
+      startedRef.current = true;
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { response?: { message?: string }; message?: string } }; message?: string };
       const message =
@@ -83,6 +83,7 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
       setPairingCode("");
       setError("");
       setBusy(false);
+      startedRef.current = false;
       return;
     }
     setPairingNumber(instance.number || "");
@@ -94,25 +95,32 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
 
     let cancelled = false;
     const tick = async () => {
+      if (!startedRef.current || busy) return;
       try {
-        const [connectRes, stateRes] = await Promise.all([
-          api.get(`/instance/connect/${instance.name}`, { headers: { apikey: token } }),
-          api.get(`/instance/connectionState/${instance.name}`, { headers: { apikey: token } }),
-        ]);
+        const { data } = await api.get(`/instance/connectionState/${instance.name}`, {
+          headers: { apikey: token },
+        });
         if (cancelled) return;
-        applyPayload(connectRes.data);
-        const state = extractConnectionState(stateRes.data);
+        const state = extractConnectionState(data);
         if (state === "open") {
           toast.success(t("instance.dashboard.connect.success", { defaultValue: "WhatsApp conectado." }));
           await onConnected?.();
           onOpenChange(false);
+          return;
+        }
+        if (state === "connecting") {
+          const qrRes = await api.get(`/instance/connect/${instance.name}`, {
+            headers: { apikey: token },
+            timeout: 15000,
+          });
+          if (!cancelled) applyPayload(qrRes.data);
         }
       } catch {
-        // keep polling; next tick retries
+        // next tick retries state only
       }
     };
 
-    const interval = window.setInterval(tick, 2500);
+    const interval = window.setInterval(tick, 3000);
     return () => {
       cancelled = true;
       window.clearInterval(interval);
@@ -126,9 +134,7 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
     const socket = connectSocket(serverUrl);
 
     const onQr = (payload: unknown) => {
-      const qr = extractQrPayload(payload);
-      if (qr.code) setQrCode(qr.code);
-      if (qr.pairingCode) setPairingCode(qr.pairingCode);
+      applyPayload(payload);
     };
     const onConnection = async (payload: unknown) => {
       const state = extractConnectionState(payload);
@@ -169,7 +175,7 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
           ) : null}
 
           {qrCode ? (
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-2xl border border-border bg-card p-4">
               <QRCode value={qrCode} size={240} bgColor="transparent" fgColor={qrColor} className="rounded-sm" />
             </div>
           ) : (
@@ -179,7 +185,7 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
           )}
 
           {pairingCode ? (
-            <div className="w-full rounded-md bg-muted px-4 py-3 text-center">
+            <div className="w-full rounded-xl bg-muted px-4 py-3 text-center">
               <p className="text-sm font-medium">{t("instance.dashboard.button.pairingCode.title")}</p>
               <p className="mt-1 font-mono text-2xl tracking-widest">
                 {pairingCode.length >= 8 ? `${pairingCode.slice(0, 4)}-${pairingCode.slice(4, 8)}` : pairingCode}
@@ -198,13 +204,13 @@ export function ConnectWhatsAppDialog({ instance, open, onOpenChange, onConnecte
                 value={pairingNumber}
                 onChange={(event) => setPairingNumber(event.target.value)}
               />
-              <Button type="button" variant="outline" disabled={busy || !pairingNumber.replace(/\D/g, "")} onClick={() => void requestConnect(true)}>
+              <Button type="button" variant="outline" className="rounded-full" disabled={busy || !pairingNumber.replace(/\D/g, "")} onClick={() => void requestConnect(true)}>
                 {t("instance.dashboard.button.pairingCode.label")}
               </Button>
             </div>
           </div>
 
-          <Button type="button" variant="secondary" disabled={busy} onClick={() => void requestConnect(false)}>
+          <Button type="button" variant="secondary" className="rounded-full" disabled={busy} onClick={() => void requestConnect(false)}>
             {t("instance.dashboard.connect.refreshQr", { defaultValue: "Atualizar QR" })}
           </Button>
         </div>
