@@ -16,6 +16,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+import { LanguageToggle } from "@/components/language-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { useInstance } from "@/contexts/InstanceContext";
@@ -212,6 +214,10 @@ function Chat() {
     <div className="inbox-shell">
       <aside className={cn("inbox-list", showSidebar ? "flex" : "hidden md:flex")}>
         <div className="inbox-list-toolbar">
+          <div className="flex items-center justify-end gap-2">
+            <LanguageToggle />
+            <ModeToggle />
+          </div>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input

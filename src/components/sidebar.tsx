@@ -15,7 +15,6 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
 
-import { useTheme } from "@/components/theme-provider";
 import { useInstance } from "@/contexts/InstanceContext";
 
 import { FEATURES, FeatureKey, isFeatureEnabled } from "@/lib/provider/features";
@@ -43,11 +42,7 @@ type Menu = MenuLeaf | MenuGroup;
 
 function SidebarShell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
   const currentYear = new Date().getFullYear();
-  const { theme } = useTheme();
-  const logoSrc =
-    theme === "dark"
-      ? "https://evolution-api.com/files/evo/evolution-logo-white.svg"
-      : "https://evolution-api.com/files/evo/evolution-logo.svg";
+  const logoSrc = "https://evolution-api.com/files/evo/evolution-logo-white.svg";
 
   return (
     <aside className="hidden md:flex bg-sidebar text-sidebar-foreground flex-col w-56 border-r border-sidebar-border">
@@ -80,7 +75,7 @@ function NavItem({ to, icon: Icon, label, isExternal }: { to: string; icon?: typ
         href={to}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
+        className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
         <span>{label}</span>
@@ -93,13 +88,13 @@ function NavItem({ to, icon: Icon, label, isExternal }: { to: string; icon?: typ
       className={({ isActive }) =>
         cn(
           "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all",
-          isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+          isActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         )
       }
     >
       {({ isActive }) => (
         <>
-          {Icon && <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />}
+          {Icon && <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-sidebar-primary")} />}
           <span>{label}</span>
         </>
       )}
@@ -228,10 +223,10 @@ function InstanceSidebar() {
               <CollapsibleTrigger
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all",
-                  groupActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  groupActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
-                <menu.icon className={cn("h-5 w-5 flex-shrink-0", groupActive && "text-primary")} />
+                <menu.icon className={cn("h-5 w-5 flex-shrink-0", groupActive && "text-sidebar-primary")} />
                 <span>{menu.title}</span>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
@@ -243,7 +238,7 @@ function InstanceSidebar() {
                     className={({ isActive }) =>
                       cn(
                         "rounded-md px-3 py-1.5 text-sm transition-all",
-                        isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground",
+                        isActive ? "text-sidebar-primary font-medium" : "text-sidebar-foreground/75 hover:text-sidebar-accent-foreground",
                       )
                     }
                   >

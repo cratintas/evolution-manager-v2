@@ -6,6 +6,8 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { LanguageToggle } from "@/components/language-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { useInstance } from "@/contexts/InstanceContext";
 import { useFindContacts } from "@/lib/queries/chat/findContacts";
 import { formatJid } from "@/pages/instance/Chat/chat-utils";
@@ -30,11 +32,19 @@ function Contacts() {
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="border-b px-6 py-5">
-        <h1 className="text-xl font-semibold">{t("contacts.title", { defaultValue: "Contatos" })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("contacts.subtitle", { defaultValue: "Todos os clientes salvos nesta instância" })}
-        </p>
+      <div className="border-b border-border bg-card px-6 py-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">{t("contacts.title", { defaultValue: "Contatos" })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("contacts.subtitle", { defaultValue: "Todos os clientes salvos nesta instância" })}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <ModeToggle />
+          </div>
+        </div>
         <div className="relative mt-4 max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input

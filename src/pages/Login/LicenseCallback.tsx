@@ -18,7 +18,7 @@ type State = "activating" | "success" | "error";
 
 function LicenseCallback() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const code = searchParams.get("code") ?? "";
@@ -27,7 +27,7 @@ function LicenseCallback() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const logoSrc =
-    theme === "dark"
+    resolvedTheme === "dark"
       ? "https://evolution-api.com/files/evo/evolution-logo-white.svg"
       : "https://evolution-api.com/files/evo/evolution-logo.svg";
 

@@ -32,7 +32,7 @@ function DashboardInstance() {
   const [goSendOpen, setGoSendOpen] = useState(false);
   const token = getToken(TOKEN_ID.TOKEN);
   const isGo = getProvider() === "go";
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   const { connect, logout, restart } = useManageInstance();
   const { instance, reloadInstance } = useInstance();
@@ -99,7 +99,7 @@ function DashboardInstance() {
     [instance],
   );
 
-  const qrCodeColor = useMemo(() => (theme === "dark" ? "#fff" : theme === "light" ? "#000" : "#189d68"), [theme]);
+  const qrCodeColor = useMemo(() => (resolvedTheme === "dark" ? "#e8f0ec" : "#17241d"), [resolvedTheme]);
 
   if (!instance) return <LoadingSpinner />;
 
@@ -145,7 +145,7 @@ function DashboardInstance() {
       />
 
       <div className="flex flex-col gap-6">
-        <Card className="border-sidebar-border bg-sidebar">
+        <Card className="border-border bg-card text-card-foreground">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -240,25 +240,25 @@ function DashboardInstance() {
         {isGo && <GoSendMessageModal open={goSendOpen} onOpenChange={setGoSendOpen} />}
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="border-sidebar-border bg-sidebar">
+          <Card className="border-border bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <CircleUser size="18" />
                 {t("instance.dashboard.contacts")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-bold">{numberFormatter.format(stats.contacts)}</CardContent>
+            <CardContent className="text-3xl font-bold text-card-foreground">{numberFormatter.format(stats.contacts)}</CardContent>
           </Card>
-          <Card className="border-sidebar-border bg-sidebar">
+          <Card className="border-border bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <UsersRound size="18" />
                 {t("instance.dashboard.chats")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-bold">{numberFormatter.format(stats.chats)}</CardContent>
+            <CardContent className="text-3xl font-bold text-card-foreground">{numberFormatter.format(stats.chats)}</CardContent>
           </Card>
-          <Card className="border-sidebar-border bg-sidebar">
+          <Card className="border-border bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <MessageCircle size="18" />

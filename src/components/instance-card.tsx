@@ -33,12 +33,12 @@ export function InstanceCard({ instance, isDeleting, onDelete }: InstanceCardPro
   const canTest = instance.connectionStatus === "open";
 
   return (
-    <Card className="group relative overflow-hidden border-sidebar-border bg-sidebar transition-all duration-300 hover:bg-sidebar-accent/30 hover:shadow-lg hover:shadow-black/10">
+    <Card className="group relative overflow-hidden border-border bg-card text-card-foreground transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-black/10">
       <CardContent className="p-0">
         <button
           type="button"
           onClick={goToInstance}
-          className="flex w-full items-center gap-3 border-b border-sidebar-border p-4 text-left"
+          className="flex w-full items-center gap-3 border-b border-border p-4 text-left"
         >
           {instance.profilePicUrl ? (
             <div className="flex-shrink-0">
@@ -60,8 +60,8 @@ export function InstanceCard({ instance, isDeleting, onDelete }: InstanceCardPro
           )}
 
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-base font-semibold text-sidebar-foreground">{displayName}</h3>
-            <p className="truncate text-xs text-sidebar-foreground/60">{instance.name}</p>
+            <h3 className="truncate text-base font-semibold text-card-foreground">{displayName}</h3>
+            <p className="truncate text-xs text-muted-foreground">{instance.name}</p>
           </div>
 
           <div className="flex-shrink-0">
@@ -69,7 +69,7 @@ export function InstanceCard({ instance, isDeleting, onDelete }: InstanceCardPro
           </div>
         </button>
 
-        <div className="space-y-1 px-4 py-3 text-xs text-sidebar-foreground/70">
+        <div className="space-y-1 px-4 py-3 text-xs text-muted-foreground">
           {instance.ownerJid && (
             <div className="flex items-center justify-between">
               <span>{t("dashboard.card.phone", { defaultValue: "Número" })}</span>
@@ -86,7 +86,7 @@ export function InstanceCard({ instance, isDeleting, onDelete }: InstanceCardPro
           </div>
         </div>
 
-        <div className="flex border-t border-sidebar-border opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className="flex border-t border-border">
           <Button
             variant="ghost"
             className="h-12 flex-1 rounded-none text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -95,7 +95,7 @@ export function InstanceCard({ instance, isDeleting, onDelete }: InstanceCardPro
             <Settings className="mr-2 h-4 w-4" />
             {t("dashboard.settings")}
           </Button>
-          <div className="w-px bg-sidebar-border" />
+          <div className="w-px bg-border" />
           <Button
             variant="ghost"
             className="h-12 rounded-none px-4 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
@@ -105,7 +105,7 @@ export function InstanceCard({ instance, isDeleting, onDelete }: InstanceCardPro
           >
             <FlaskConical className="h-4 w-4" />
           </Button>
-          <div className="w-px bg-sidebar-border" />
+          <div className="w-px bg-border" />
           <Button
             variant="ghost"
             className="h-12 rounded-none px-4 text-red-500 hover:bg-red-500/10 hover:text-red-400"

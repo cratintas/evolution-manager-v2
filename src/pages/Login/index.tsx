@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { Form, FormSelect } from "@/components/ui/form";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { useTheme } from "@/components/theme-provider";
 
 import { verifyCreds } from "@/lib/queries/auth/verifyCreds";
@@ -37,11 +39,11 @@ function defaultServerUrl() {
 function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const logoSrc =
-    theme === "dark"
+    resolvedTheme === "dark"
       ? "https://evolution-api.com/files/evo/evolution-logo-white.svg"
       : "https://evolution-api.com/files/evo/evolution-logo.svg";
 
@@ -125,13 +127,17 @@ function Login() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-t from-primary/20 via-background/95 to-background p-4">
+      <div className="absolute right-4 top-4 flex items-center gap-2">
+        <LanguageToggle />
+        <ModeToggle />
+      </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center text-center">
           <img src={logoSrc} alt="Evolution API" className="mb-3 h-10" />
           <p className="text-sm text-muted-foreground">{t("login.description")}</p>
         </div>
 
-        <div className="rounded-lg border bg-background/80 p-6 shadow-lg backdrop-blur-sm">
+        <div className="rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg">
           <div className="mb-6 space-y-2">
             <h2 className="text-2xl font-bold">{t("login.title")}</h2>
             <p className="text-sm text-muted-foreground">

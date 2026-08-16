@@ -143,7 +143,7 @@ function Dashboard() {
             ))}
           </div>
         ) : totalCount === 0 ? (
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-sidebar-border p-8 text-center">
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-8 text-center text-card-foreground">
             <Layers className="h-10 w-10 text-muted-foreground" />
             <div>
               <h3 className="text-lg font-semibold">{t("dashboard.empty.title", { defaultValue: "Nenhuma instância encontrada" })}</h3>

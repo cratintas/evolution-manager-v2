@@ -35,7 +35,7 @@ const EmbedColorsContext = createContext<EmbedColorsContextType>({
 
 export function EmbedColorsProvider({ children }: { children: React.ReactNode }) {
   const [searchParams] = useSearchParams();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const backgroundColor = searchParams.get("backgroundColor");
   const textForegroundColor = searchParams.get("textForegroundColor");
   const primaryColor = searchParams.get("primaryColor");
@@ -49,84 +49,84 @@ export function EmbedColorsProvider({ children }: { children: React.ReactNode })
   const inputTextForegroundColor = searchParams.get("inputTextForegroundColor");
   const inputIconsMainColor = searchParams.get("inputIconsMainColor");
   const getDefaultBackgroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#0f0f0f";
     }
     return "#faf9fa";
   };
 
   const getDefaultTextForegroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#faf9fa";
     }
     return "#020202";
   };
 
   const getDefaultPrimaryColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#0b332a";
     }
     return "#e0f0f0";
   };
 
   const getDefaultFromMeBubbleColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#0b332a";
     }
     return "#c8fff2";
   };
 
   const getDefaultFromMeForegroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#ffffff";
     }
     return "#020202";
   };
 
   const getDefaultFromOtherBubbleColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#1d2724";
     }
     return "#e0f0f0";
   };
 
   const getDefaultFromOtherForegroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#ffffff";
     }
     return "#020202";
   };
 
   const getDefaultInputBackgroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#161616";
     }
     return "#e0f0f0";
   };
 
   const getDefaultInputTextForegroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#faf9fa";
     }
     return "#020202";
   };
 
   const getDefaultFromMeQuotedBubbleColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#1f463d";
     }
     return "#aff7e6";
   };
 
   const getDefaultFromOtherQuotedBubbleColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#0f1413";
     }
     return "#d2e2e2";
   };
 
   const getDefaultInputIconsMainColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return "#0e6451";
     }
     return "#0b332a";

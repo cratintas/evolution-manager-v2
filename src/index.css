@@ -1,9 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
-:root {
+/* html:root / html.dark beat @evoapi/design-system :root and .dark */
+html:root {
+  color-scheme: light;
   --background: #f6f7f4;
   --foreground: #17241d;
   --card: #ffffff;
@@ -15,7 +17,7 @@
   --secondary: #e8f3ec;
   --secondary-foreground: #0f3d28;
   --muted: #eef2ee;
-  --muted-foreground: #66756e;
+  --muted-foreground: #4d5d56;
   --accent: #e7f6ee;
   --accent-foreground: #0f3d28;
   --destructive: #dc2626;
@@ -39,19 +41,20 @@
   --chart-5: #b45309;
 }
 
-.dark {
+html.dark {
+  color-scheme: dark;
   --background: #0b1512;
   --foreground: #e8f0ec;
   --card: #12201b;
   --card-foreground: #e8f0ec;
-  --popover: #12201b;
+  --popover: #16261f;
   --popover-foreground: #e8f0ec;
   --primary: #22c55e;
   --primary-foreground: #052e16;
   --secondary: #163227;
   --secondary-foreground: #d7ebe2;
   --muted: #163227;
-  --muted-foreground: #93a89d;
+  --muted-foreground: #a8bdb2;
   --accent: #1a3b2e;
   --accent-foreground: #d7ebe2;
   --destructive: #f87171;
@@ -118,7 +121,6 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
   }
 
   body {
@@ -128,6 +130,7 @@
 
   #root {
     height: 100%;
+    overflow: hidden;
   }
 
   a,
@@ -180,6 +183,25 @@
 [data-slot="command-item"][data-disabled],
 [data-radix-collection-item][data-disabled] {
   cursor: not-allowed !important;
+}
+
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"],
+[data-slot="popover-content"],
+[data-slot="dialog-content"] {
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border-color: var(--border);
+}
+
+[data-slot="dialog-content"] {
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
+[data-state="open"][data-slot="dialog-overlay"],
+[data-state="open"][data-slot="dialog-content"] {
+  visibility: visible;
 }
 
 @layer base {

@@ -25,14 +25,14 @@ function Header({ instanceId }: { instanceId?: string }) {
   const { data: instance } = useFetchInstance({ instanceId });
 
   return (
-    <header className="flex h-16 items-center justify-end border-b border-sidebar-border bg-sidebar px-4 shadow-sm">
+    <header className="flex h-16 items-center justify-end border-b border-border bg-card px-4 text-foreground shadow-sm">
       <div className="flex items-center gap-2">
         {instanceId && instance && (
-          <div className="mr-2 flex items-center gap-2 rounded-md bg-sidebar-accent/50 px-3 py-1.5">
+          <div className="mr-2 flex items-center gap-2 rounded-md bg-muted px-3 py-1.5">
             <Avatar className="h-6 w-6">
               <AvatarImage src={instance.profilePicUrl || "/assets/images/evolution-logo.png"} alt={instance.name} />
             </Avatar>
-            <span className="text-sm font-medium text-sidebar-foreground">{instance.profileName || instance.name}</span>
+            <span className="text-sm font-medium text-foreground">{instance.profileName || instance.name}</span>
           </div>
         )}
         <LanguageToggle />
@@ -41,7 +41,7 @@ function Header({ instanceId }: { instanceId?: string }) {
           onClick={() => setLogoutConfirmation(true)}
           variant="ghost"
           size="sm"
-          className="gap-2 text-sidebar-foreground hover:bg-sidebar-accent"
+          className="gap-2 text-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <LogOut className="h-4 w-4" />
           {t("header.logout.action")}
