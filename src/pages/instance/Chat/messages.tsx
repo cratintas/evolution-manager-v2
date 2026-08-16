@@ -1,7 +1,10 @@
-import { Send, User } from "lucide-react";
-import { RefObject, useEffect, useMemo, useState } from "react";
+import { CheckCheck, Mic, Send, User, Users } from "lucide-react";
+import { ChangeEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import { cn } from "@/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@evoapi/design-system/avatar";
 import { Button } from "@evoapi/design-system/button";
@@ -11,22 +14,24 @@ import { useInstance } from "@/contexts/InstanceContext";
 
 import { useFindChat } from "@/lib/queries/chat/findChat";
 import { useFindMessages } from "@/lib/queries/chat/findMessages";
-import { useSendMessage, useSendMedia } from "@/lib/queries/chat/sendMessage";
+import { useArchiveChat, useMarkChatRead } from "@/lib/queries/chat/manageChat";
+import { useSendMessage, useSendMedia, useSendAudio } from "@/lib/queries/chat/sendMessage";
 import { getToken, TOKEN_ID } from "@/lib/queries/token";
 
 import { Message } from "@/types/evolution.types";
 
 import { connectSocket, disconnectSocket } from "@/services/websocket/socket";
 
-// Import components from EmbedChatMessage for attachment functionality
 import { MediaOptions } from "../EmbedChatMessage/InputMessage/media-options";
 import { SelectedMedia } from "../EmbedChatMessage/InputMessage/selected-media";
 
+import { chatLabels, displayName, formatJid, isGroupJid } from "./chat-utils";
+
 type MessagesProps = {
-  textareaRef: RefObject<HTMLTextAreaElement>;
+  textareaRef: RefObject<HTMLTextAreaElement | null>;
   handleTextareaChange: () => void;
   textareaHeight: string;
-  lastMessageRef: RefObject<HTMLDivElement>;
+  lastMessageRef: RefObject<HTMLDivElement | null>;
   scrollToBottom: () => void;
 };
 
@@ -310,8 +315,12 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
   const [realtimeMessages, setRealtimeMessages] = useState<Message[]>([]);
   const { sendText: sendTextMutation } = useSendMessage();
   const { sendMedia: sendMediaMutation } = useSendMedia();
-
-  const { remoteJid } = useParams<{ remoteJid: string }>();
+  const { sendAudio: sendAudioMutation } = useSendAudio();
+  const archiveChat = useArchiveChat();
+  const markChatRead = useMarkChatRead();
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+  const navigate = useNavigate();
+  const { instanceId, remoteJid } = useParams<{ instanceId: string; remoteJid: string }>();
 
   // Handle sending text messages
   const sendTextMessage = async () => {
@@ -576,14 +585,10 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
   }, [remoteJid]);
 
   const renderBubbleRight = (message: Message) => (
-    <div key={message.id} className="mb-4 flex justify-end">
-      <div className="max-w-[70%]">
-        <div className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">
-          <MessageContent message={message} />
-        </div>
-        <span className="mt-0.5 block px-1 text-right text-[11px] text-muted-foreground">
-          {formatMessageTime(getMessageTimestamp(message), locale)}
-        </span>
+    <div key={message.id} className="mb-3 flex justify-end">
+      <div className="inbox-bubble inbox-bubble-out">
+        <MessageContent message={message} />
+        <span className="inbox-bubble-time">{formatMessageTime(getMessageTimestamp(message), locale)}</span>
       </div>
     </div>
   );
@@ -595,42 +600,112 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
     const senderName = message.pushName || (participant ? participant.split("@")[0] : "");
 
     return (
-      <div key={message.id} className="mb-4 flex justify-start">
-        <div className="max-w-[70%]">
+      <div key={message.id} className="mb-3 flex justify-start">
+        <div className="inbox-bubble inbox-bubble-in">
           {isGroup && senderName && (
             <div className="mb-1 text-xs font-semibold" style={{ color: getSenderColor(senderKey) }}>
               {senderName}
             </div>
           )}
-          <div className="rounded-lg border bg-muted px-3 py-2 text-sm text-foreground">
-            <MessageContent message={message} />
-          </div>
-          <span className="mt-0.5 block px-1 text-[11px] text-muted-foreground">
-            {formatMessageTime(getMessageTimestamp(message), locale)}
-          </span>
+          <MessageContent message={message} />
+          <span className="inbox-bubble-time">{formatMessageTime(getMessageTimestamp(message), locale)}</span>
         </div>
       </div>
     );
   };
 
-  const headerName = chat?.pushName || chat?.remoteJid?.split("@")[0];
-  const headerSub = chat?.remoteJid?.split("@")[0];
+  const headerName = chat ? displayName(chat) : formatJid(remoteJid);
+  const headerSub = formatJid(chat?.remoteJid || remoteJid);
+  const labels = chatLabels(chat?.labels);
+  const isOpenWindow = chat?.windowActive !== false;
+
+  useEffect(() => {
+    if (!instance?.name || !instance?.token || !remoteJid) return;
+    const lastIncoming = [...(allMessages || [])].reverse().find((message) => !message.key.fromMe);
+    if (!lastIncoming?.key.id) return;
+    markChatRead({
+      instanceName: instance.name,
+      token: instance.token,
+      remoteJid,
+      messageId: lastIncoming.key.id,
+    }).catch(() => undefined);
+    // Mark once after the conversation history is available.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instance?.name, instance?.token, remoteJid, isSuccess]);
+
+  const concludeChat = async () => {
+    if (!instance?.name || !instance?.token || !remoteJid) return;
+    try {
+      await archiveChat({
+        instanceName: instance.name,
+        token: instance.token,
+        chat: remoteJid,
+        archive: true,
+      });
+      toast.success(t("chat.conclude.success", { defaultValue: "Atendimento concluído" }));
+      navigate(`/manager/instance/${instanceId}/chat`);
+    } catch (error) {
+      console.error(error);
+      toast.error(t("chat.conclude.error", { defaultValue: "Não foi possível concluir o atendimento" }));
+    }
+  };
+
+  const handleAudioPick = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !remoteJid || !instance?.name || !instance?.token) return;
+    try {
+      setIsSending(true);
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = reject;
+      });
+      await sendAudioMutation({
+        instanceName: instance.name,
+        token: instance.token,
+        data: { number: remoteJid, audioMessage: { audio: base64Data } },
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error(t("chat.media.errors.audioSize", { defaultValue: "Não foi possível enviar o áudio" }));
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
-    <div className="flex h-full flex-col bg-muted/10">
-      <div className="flex-shrink-0 border-b bg-background/95 p-4 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
+    <div className="flex h-full flex-col bg-[var(--inbox-canvas)]">
+      <div className="inbox-thread-header">
+        <div className="flex min-w-0 items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={chat?.profilePicUrl} alt={headerName} />
             <AvatarFallback className="bg-muted text-muted-foreground">
-              <User className="h-5 w-5" />
+              {isGroupJid(remoteJid) ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-semibold">{headerName}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="truncate font-semibold">{headerName}</h3>
+              {labels.map((label) => (
+                <span key={label} className="inbox-chip">
+                  {label}
+                </span>
+              ))}
+              <span className={cn("inbox-status", isOpenWindow ? "inbox-status-open" : "inbox-status-closed")}>
+                {isOpenWindow
+                  ? t("chat.status.open", { defaultValue: "Atendimento em Aberto" })
+                  : t("chat.status.closed", { defaultValue: "Janela encerrada" })}
+              </span>
+            </div>
             <p className="truncate text-xs text-muted-foreground">{headerSub}</p>
           </div>
         </div>
+        <Button type="button" variant="outline" className="shrink-0 rounded-full" onClick={concludeChat}>
+          <CheckCheck className="mr-1.5 h-4 w-4" />
+          {t("chat.conclude.action", { defaultValue: "Concluir" })}
+        </Button>
       </div>
       <div className="flex w-full flex-1 flex-col overflow-y-auto px-4 py-4">
         {groupedMessages.map((group, groupIndex) => (
@@ -643,19 +718,19 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
         ))}
         <div ref={lastMessageRef as never} />
       </div>
-      <div className="flex-shrink-0 border-t bg-background p-3">
-        <div className="rounded-lg border border-border bg-card shadow-sm">
+      <div className="inbox-composer">
+        <div className="inbox-composer-box">
           {selectedMedia && (
             <div className="border-b border-border bg-muted/30 px-3 py-2">
               <SelectedMedia selectedMedia={selectedMedia} setSelectedMedia={setSelectedMedia} />
             </div>
           )}
-          <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="flex items-end gap-2 px-2 py-1.5">
             <div className="flex flex-shrink-0 items-center">
               {instance && <MediaOptions instance={instance} setSelectedMedia={setSelectedMedia} />}
             </div>
             <Textarea
-              placeholder={t("chat.input.placeholder", { defaultValue: "Digite uma mensagem..." })}
+              placeholder={t("chat.input.placeholder", { defaultValue: "Digite sua mensagem... (digite / para respostas prontas)" })}
               name="message"
               id="message"
               rows={1}
@@ -665,14 +740,32 @@ function Messages({ textareaRef, handleTextareaChange, textareaHeight, lastMessa
               onKeyDown={handleKeyDown}
               disabled={isSending}
               style={{ height: textareaHeight }}
-              className="min-h-9 flex-1 resize-none border-none bg-transparent px-2 py-1.5 text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="min-h-10 flex-1 resize-none border-none bg-transparent px-2 py-2 text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
             />
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={handleAudioPick}
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 shrink-0"
+              onClick={() => audioInputRef.current?.click()}
+              disabled={isSending}
+            >
+              <Mic className="h-4 w-4" />
+              <span className="sr-only">{t("chat.input.audio", { defaultValue: "Enviar áudio" })}</span>
+            </Button>
             <Button
               type="button"
               size="icon"
               onClick={sendMessage}
               disabled={(!messageText.trim() && !selectedMedia) || isSending}
-              className="h-9 w-9 flex-shrink-0 bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50"
+              className="h-9 w-9 flex-shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/85 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
               <span className="sr-only">{t("chat.input.send")}</span>

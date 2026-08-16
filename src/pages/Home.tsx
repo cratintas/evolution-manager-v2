@@ -1,7 +1,7 @@
 import { Button } from "@evoapi/design-system/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@evoapi/design-system/card";
 import { Badge } from "@evoapi/design-system/badge";
-import { ArrowRight, Github, Globe, Mail, Shield } from "lucide-react";
+import { ArrowRight, GitBranch, Globe, Mail, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -97,7 +97,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 rounded-lg border border-border hover:bg-accent transition-colors"
                 >
-                  <Github className="w-5 h-5 text-muted-foreground" />
+                  <GitBranch className="w-5 h-5 text-muted-foreground" />
                   <div>
                     <div className="font-medium text-foreground">GitHub</div>
                     <div className="text-sm text-muted-foreground">Source code</div>

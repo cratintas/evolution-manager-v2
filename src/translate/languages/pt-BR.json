@@ -157,6 +157,8 @@
   },
   "sidebar": {
     "dashboard": "Visão Geral",
+    "chat": "Conversas",
+    "contacts": "Contatos",
     "configurations": "Configurações",
     "settings": "Comportamento",
     "proxy": "Proxy",
@@ -1553,6 +1555,29 @@
     "tabs": {
       "contacts": "Contatos",
       "groups": "Grupos"
+    },
+    "filters": {
+      "active": "Ativas",
+      "all": "Todas",
+      "groups": "Grupos",
+      "toggle": "Filtros",
+      "hint": "Ativas mostra conversas individuais. Use Todas para incluir grupos."
+    },
+    "status": {
+      "open": "Atendimento em Aberto",
+      "closed": "Janela encerrada"
+    },
+    "conclude": {
+      "action": "Concluir",
+      "success": "Atendimento concluído",
+      "error": "Não foi possível concluir o atendimento"
+    },
+    "newChat": {
+      "title": "Nova conversa",
+      "description": "Informe o número com DDI para abrir a conversa.",
+      "placeholder": "5511999999999",
+      "submit": "Abrir conversa",
+      "invalid": "Informe um número válido com DDI"
     },
     "count_one": "{{count}} conversa",
     "count_other": "{{count}} conversas",

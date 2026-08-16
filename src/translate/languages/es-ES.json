@@ -157,6 +157,8 @@
   },
   "sidebar": {
     "dashboard": "Visión General",
+    "chat": "Conversaciones",
+    "contacts": "Contactos",
     "configurations": "Configuraciones",
     "settings": "Comportamiento",
     "proxy": "Proxy",

@@ -53,15 +53,32 @@ export type Contact = {
   instanceId: string;
 };
 
+export type ChatLastMessage = {
+  id?: string;
+  key?: Key;
+  pushName?: string;
+  messageType?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  message?: any;
+  messageTimestamp?: string | number;
+  status?: string;
+};
+
 export type Chat = {
   id: string;
   pushName: string;
   remoteJid: string;
-  labels: string[] | null;
+  labels: string[] | Record<string, unknown> | null;
   profilePicUrl: string;
   createdAt: string;
   updatedAt: string;
   instanceId: string;
+  lastMessage?: ChatLastMessage;
+  unreadCount?: number;
+  windowActive?: boolean;
+  windowStart?: string;
+  windowExpires?: string;
+  isSaved?: boolean;
 };
 
 export type Key = {

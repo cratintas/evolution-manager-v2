@@ -1,8 +1,10 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@evoapi/design-system/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@evoapi/design-system/collapsible";
 import {
   ChevronDown,
   CircleHelp,
   Cog,
+  ContactRound,
   FileQuestion,
   IterationCcw,
   LayoutDashboard,
@@ -64,8 +66,8 @@ function SidebarShell({ children, footer }: { children: React.ReactNode; footer?
       )}
 
       <div className="p-4 border-t border-sidebar-border">
-        <div className="text-sm font-medium text-primary">Evolution Manager</div>
-        <div className="mt-1 text-xs text-muted-foreground">© {currentYear} All rights reserved</div>
+        <div className="text-sm font-medium text-sidebar-primary">evolution</div>
+        <div className="mt-1 text-xs text-sidebar-foreground/70">© {currentYear} Evolution Manager</div>
       </div>
     </aside>
   );
@@ -136,6 +138,7 @@ function InstanceSidebar() {
     () => [
       { id: "dashboard", title: t("sidebar.dashboard"), icon: LayoutDashboard, path: "dashboard" },
       { id: "chat", title: t("sidebar.chat"), icon: MessageCircle, path: "chat" },
+      { id: "contacts", title: t("sidebar.contacts"), icon: ContactRound, path: "contacts" },
       {
         title: t("sidebar.configurations"),
         icon: Cog,
@@ -188,8 +191,34 @@ function InstanceSidebar() {
     [menus],
   );
 
+  const account = (
+    <div className="mb-3 flex items-center gap-2 rounded-lg bg-sidebar-accent/70 px-3 py-2">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={instance?.profilePicUrl} alt={instance?.profileName || instance?.name} />
+        <AvatarFallback className="text-xs">{(instance?.profileName || instance?.name || "EV").slice(0, 2)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium text-sidebar-foreground">
+          {instance?.profileName || instance?.name || t("sidebar.account", { defaultValue: "Conta ativa" })}
+        </p>
+        <p className="truncate text-[11px] text-sidebar-foreground/70">
+          {instance?.connectionStatus === "open"
+            ? t("status.open")
+            : instance?.connectionStatus || t("sidebar.accountIdle", { defaultValue: "Sem conexão" })}
+        </p>
+      </div>
+    </div>
+  );
+
   return (
-    <SidebarShell footer={<ExternalLinks />}>
+    <SidebarShell
+      footer={
+        <>
+          {account}
+          <ExternalLinks />
+        </>
+      }
+    >
       <NavItem to="/manager" icon={LayoutDashboard} label={`← ${t("dashboard.title")}`} />
       <div className="my-2 border-t border-sidebar-border" />
       {visibleMenus.map((menu) => {

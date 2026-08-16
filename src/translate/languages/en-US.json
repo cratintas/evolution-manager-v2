@@ -179,6 +179,29 @@
       "contacts": "Contacts",
       "groups": "Groups"
     },
+    "filters": {
+      "active": "Active",
+      "all": "All",
+      "groups": "Groups",
+      "toggle": "Filters",
+      "hint": "Active shows direct chats. Use All to include groups."
+    },
+    "status": {
+      "open": "Open conversation",
+      "closed": "Window closed"
+    },
+    "conclude": {
+      "action": "Resolve",
+      "success": "Conversation resolved",
+      "error": "Could not resolve the conversation"
+    },
+    "newChat": {
+      "title": "New conversation",
+      "description": "Enter the number with country code to open the chat.",
+      "placeholder": "5511999999999",
+      "submit": "Open chat",
+      "invalid": "Enter a valid number with country code"
+    },
     "count_one": "{{count}} conversation",
     "count_other": "{{count}} conversations",
     "empty": {
@@ -199,7 +222,8 @@
   },
   "sidebar": {
     "dashboard": "Dashboard",
-    "chat": "Chat",
+    "chat": "Conversations",
+    "contacts": "Contacts",
     "configurations": "Configurations",
     "settings": "Settings",
     "proxy": "Proxy",
