@@ -12,6 +12,7 @@ import { ChevronsUpDown, Layers, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { BaseHeader } from "@/components/base-header";
 import { InstanceCard } from "@/components/instance-card";
@@ -33,10 +34,12 @@ function Dashboard() {
   const [nameSearch, setNameSearch] = useState("");
   const [searchStatus, setSearchStatus] = useState("all");
 
-  const { deleteInstance, logout } = useManageInstance();
-  const { data: instances, isLoading, refetch } = useFetchInstances();
+  const queryClient = useQueryClient();
+  const { deleteInstance } = useManageInstance();
+  const { data: instances, isLoading, refetch } = useFetchInstances({ refetchInterval: 8000 });
 
   const resetTable = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["instance", "fetchInstances"] });
     await refetch();
   };
 
@@ -48,22 +51,25 @@ function Dashboard() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const name = deleteTarget.name;
+    const id = deleteTarget.id;
     setDeletingName(name);
     try {
-      try {
-        await logout(name);
-      } catch (error) {
-        console.error("Error logout:", error);
-      }
       await deleteInstance(name);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await resetTable();
+      queryClient.setQueryData(["instance", "fetchInstances"], (current: Instance[] | undefined) =>
+        Array.isArray(current) ? current.filter((item) => item.id !== id && item.name !== name) : current,
+      );
       toast.success(t("toast.instance.deleted", { defaultValue: "Instância removida com sucesso!" }));
       closeDeleteModal();
+      await resetTable();
     } catch (error: unknown) {
       console.error("Error instance delete:", error);
-      const message = error instanceof Error ? error.message : "Erro ao remover instância";
-      toast.error(message);
+      const axiosErr = error as { response?: { data?: { response?: { message?: string }; message?: string } }; message?: string };
+      const message =
+        axiosErr?.response?.data?.response?.message ||
+        axiosErr?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Erro ao remover instância");
+      toast.error(Array.isArray(message) ? message.join("; ") : String(message));
+      await resetTable();
     } finally {
       setDeletingName(null);
     }
@@ -143,7 +149,7 @@ function Dashboard() {
             ))}
           </div>
         ) : totalCount === 0 ? (
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-sidebar-border p-8 text-center">
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-8 text-center text-card-foreground">
             <Layers className="h-10 w-10 text-muted-foreground" />
             <div>
               <h3 className="text-lg font-semibold">{t("dashboard.empty.title", { defaultValue: "Nenhuma instância encontrada" })}</h3>
@@ -164,6 +170,7 @@ function Dashboard() {
                 instance={instance}
                 isDeleting={deletingName === instance.name}
                 onDelete={(inst) => setDeleteTarget(inst)}
+                onChanged={resetTable}
               />
             ))}
           </div>

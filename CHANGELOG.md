@@ -5,6 +5,20 @@ All notable changes to Evolution Manager v2 will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-08-16
+
+### Added
+- WhatsApp-like inbox: presence, last seen, disappearing-message picker, complete profiles
+- Message ticks (sent / delivered / read), reactions, emoji picker, quoted replies
+- Floating composer, unread separator, scroll-to-bottom, paste/drop media
+- Archive/unarchive synced with WhatsApp, including last-message payload
+
+### Fixed
+- Archive chats without Prisma JSON filter errors
+- Ticks aligned to the right of the bubble timestamp
+- Verified badge only on official accounts
+- Unread counts and LID/PN conversation identity
+
 ## [Unreleased]
 
 ### Added

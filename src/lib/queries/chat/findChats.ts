@@ -24,5 +24,7 @@ export const useFindChats = (props: UseQueryParams<FindChatsResponse> & Partial<
     queryKey: queryKey({ instanceName }),
     queryFn: () => findChats({ instanceName: instanceName! }),
     enabled: !!instanceName,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: false,
   });
 };

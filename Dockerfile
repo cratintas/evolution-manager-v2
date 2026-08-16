@@ -6,7 +6,7 @@ COPY package*.json ./
 
 # Install dependencies without running prepare scripts
 RUN echo "Iniciando install..." && \
-    npm ci --ignore-scripts && \
+    npm install --ignore-scripts --no-audit --no-fund && \
     echo "Install concluído."
 
 # Copy source code
@@ -15,8 +15,6 @@ COPY tsconfig.json ./
 COPY tsconfig.app.json ./
 COPY tsconfig.node.json ./
 COPY vite.config.ts ./
-COPY postcss.config.js ./
-COPY tailwind.config.js ./
 COPY index.html ./
 COPY components.json ./
 COPY public/ ./public/

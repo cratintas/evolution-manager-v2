@@ -70,6 +70,7 @@ function NewInstance({ resetTable, open, onOpenChange }: { resetTable: () => voi
         token: data.token === "" ? null : data.token,
         number: data.number === "" ? null : data.number,
         businessId: data.businessId === "" ? null : data.businessId,
+        syncFullHistory: true,
       };
 
       await createInstance(instanceData);

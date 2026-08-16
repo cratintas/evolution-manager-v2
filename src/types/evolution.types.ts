@@ -19,6 +19,7 @@ export type NewInstance = {
   token?: string | null;
   number?: string | null;
   businessId?: string | null;
+  syncFullHistory?: boolean;
 };
 
 export type Instance = {
@@ -47,27 +48,50 @@ export type Contact = {
   id: string;
   pushName: string;
   remoteJid: string;
+  phone?: string | null;
+  phoneJid?: string | null;
   profilePicUrl: string;
   createdAt: string;
   updatedAt: string;
   instanceId: string;
+};
+
+export type ChatLastMessage = {
+  id?: string;
+  key?: Key;
+  pushName?: string;
+  messageType?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  message?: any;
+  messageTimestamp?: string | number;
+  status?: string;
 };
 
 export type Chat = {
   id: string;
   pushName: string;
   remoteJid: string;
-  labels: string[] | null;
+  phone?: string | null;
+  phoneJid?: string | null;
+  labels: string[] | Record<string, unknown> | null;
   profilePicUrl: string;
   createdAt: string;
   updatedAt: string;
   instanceId: string;
+  lastMessage?: ChatLastMessage;
+  unreadCount?: number;
+  windowActive?: boolean;
+  windowStart?: string;
+  windowExpires?: string;
+  isSaved?: boolean;
+  archived?: boolean;
 };
 
 export type Key = {
   id: string;
   fromMe: boolean;
   remoteJid: string;
+  remoteJidAlt?: string;
   participant?: string;
 };
 
@@ -81,11 +105,17 @@ export type Message = {
   messageTimestamp: string;
   instanceId: string;
   source: string;
+  status?: string | number;
+  MessageUpdate?: { status?: string }[];
 };
 
 export type SendText = {
   number: string;
   text: string;
+  quoted?: {
+    key: Key;
+    message?: unknown;
+  };
   options?: {
     delay?: number;
     presence?: string;

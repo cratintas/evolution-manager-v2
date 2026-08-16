@@ -10,9 +10,10 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Form, FormSelect } from "@/components/ui/form";
-import { useTheme } from "@/components/theme-provider";
-
+import { LanguageToggle } from "@/components/language-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { verifyCreds } from "@/lib/queries/auth/verifyCreds";
 import { verifyGoServer } from "@/lib/queries/auth/verifyGoServer";
 import { verifyServer } from "@/lib/queries/auth/verifyServer";
@@ -26,22 +27,25 @@ const loginSchema = z.object({
 });
 type LoginSchema = z.infer<typeof loginSchema>;
 
+function defaultServerUrl() {
+  const { protocol, hostname, port } = window.location;
+  if (port === "5173" || port === "3000") {
+    return `${protocol}//${hostname}:8080`;
+  }
+  return `${protocol}//${window.location.host}`;
+}
+
 function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { theme } = useTheme();
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const logoSrc =
-    theme === "dark"
-      ? "https://evolution-api.com/files/evo/evolution-logo-white.svg"
-      : "https://evolution-api.com/files/evo/evolution-logo.svg";
 
   const loginForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       provider: DEFAULT_PROVIDER,
-      serverUrl: window.location.protocol + "//" + window.location.host,
+      serverUrl: defaultServerUrl(),
       apiKey: "",
     },
   });
@@ -52,34 +56,24 @@ function Login() {
     try {
       const cleanUrl = data.serverUrl.replace(/\/+$/, "");
 
-      // 1. License gate FIRST — same flow evolution-go-manager uses.
-      // Only attempts the check on the API provider; the GO branch keeps its own flow.
-      if (data.provider === "api") {
+      if (data.provider === "go") {
         try {
           const lic = await checkLicenseStatus(cleanUrl, data.apiKey);
           if (lic.status !== "active") {
             const callbackUrl = `${window.location.origin}/manager/license/callback`;
             const reg = await initRegister(callbackUrl, cleanUrl, data.apiKey);
-
             if (!reg.register_url) {
-              const msg = reg.message || t("license.registerFailed");
-              setLoginError(msg);
+              setLoginError(reg.message || t("license.registerFailed"));
               return;
             }
-
-            // Save credentials so the callback page knows where to call /license/activate.
-            saveToken({ url: cleanUrl, token: data.apiKey, provider: "api" });
+            saveToken({ url: cleanUrl, token: data.apiKey, provider: "go" });
             window.location.href = reg.register_url;
             return;
           }
         } catch (err) {
-          // If /license/* itself is unreachable, fall through to the normal login flow —
-          // older Evolution API builds without the licensing module behave this way.
           console.warn("[license] status check skipped:", err);
         }
-      }
 
-      if (data.provider === "go") {
         const ok = await verifyGoServer({ url: cleanUrl, token: data.apiKey });
         if (!ok) {
           logout();
@@ -127,13 +121,17 @@ function Login() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-t from-primary/20 via-background/95 to-background p-4">
+      <div className="absolute right-4 top-4 flex items-center gap-2">
+        <LanguageToggle />
+        <ModeToggle />
+      </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center text-center">
-          <img src={logoSrc} alt="Evolution API" className="mb-3 h-10" />
+          <BrandLogo className="mb-4" />
           <p className="text-sm text-muted-foreground">{t("login.description")}</p>
         </div>
 
-        <div className="rounded-lg border bg-background/80 p-6 shadow-lg backdrop-blur-sm">
+        <div className="rounded-lg border border-border bg-card p-6 text-card-foreground shadow-lg">
           <div className="mb-6 space-y-2">
             <h2 className="text-2xl font-bold">{t("login.title")}</h2>
             <p className="text-sm text-muted-foreground">
@@ -171,7 +169,7 @@ function Login() {
                 <Input
                   id="login-serverUrl"
                   type="text"
-                  placeholder={window.location.origin}
+                  placeholder={defaultServerUrl()}
                   disabled={submitting}
                   {...loginForm.register("serverUrl")}
                 />
@@ -208,7 +206,7 @@ function Login() {
 
         <div className="text-center text-xs text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} Evolution API ·{" "}
+            © {new Date().getFullYear()} ·{" "}
             <a href="https://docs.evolutionfoundation.com.br/" target="_blank" rel="noreferrer" className="underline hover:text-primary">
               Documentação
             </a>

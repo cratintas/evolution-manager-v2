@@ -129,7 +129,8 @@
     "all": "Todos",
     "open": "Conectado",
     "connecting": "Conectando",
-    "closed": "Desconectado"
+    "closed": "Desconectado",
+    "unconfigured": "Não configurado"
   },
   "footer": {
     "clientName": "Nome do Cliente",
@@ -157,6 +158,8 @@
   },
   "sidebar": {
     "dashboard": "Visão Geral",
+    "chat": "Conversas",
+    "contacts": "Contatos",
     "configurations": "Configurações",
     "settings": "Comportamento",
     "proxy": "Proxy",
@@ -175,8 +178,7 @@
     "evolutionBot": "Bot Evolution",
     "flowise": "Flowise",
     "documentation": "Documentação",
-    "postman": "Postman",
-    "discord": "Discord"
+    "postman": "Postman"
   },
   "toast": {
     "instance": {
@@ -204,8 +206,8 @@
     }
   },
   "login": {
-    "title": "Evolution Manager",
-    "description": "Por favor, faça login para continuar",
+    "title": "Entrar",
+    "description": "Acesse o painel",
     "subtitle": "Digite suas credenciais para acessar o sistema",
     "form": {
       "serverUrl": "URL do Servidor",
@@ -260,9 +262,11 @@
         },
         "restart": "Reiniciar",
         "disconnect": "Desconectar",
-        "sendMessage": "Enviar mensagem"
+        "sendMessage": "Enviar mensagem",
+        "configure": "Configurar"
       },
       "alert": "Para conectar, escaneie o QR Code com o WhatsApp",
+      "unconfigured": "Nenhuma conta WhatsApp configurada",
       "contacts": "Contatos",
       "chats": "Chats",
       "messages": "Mensagens"
@@ -1554,8 +1558,37 @@
       "contacts": "Contatos",
       "groups": "Grupos"
     },
-    "count_one": "{{count}} conversa",
-    "count_other": "{{count}} conversas",
+    "filters": {
+      "active": "Ativas",
+      "all": "Todas",
+      "groups": "Grupos",
+      "toggle": "Filtros",
+      "unread": "Não lidas",
+      "openWindow": "Janela 24h",
+      "clear": "Limpar",
+      "hint": "Todas lista tudo. Ativas mostra conversas individuais. Grupos mostra apenas grupos."
+    },
+    "status": {
+      "open": "Atendimento em Aberto",
+      "closed": "Janela encerrada"
+    },
+    "conclude": {
+      "action": "Concluir",
+      "success": "Atendimento concluído",
+      "error": "Não foi possível concluir o atendimento"
+    },
+    "newChat": {
+      "title": "Nova conversa",
+      "description": "Informe o número com DDI para abrir a conversa.",
+      "placeholder": "5511999999999",
+      "submit": "Abrir conversa",
+      "invalid": "Informe um número válido com DDI"
+    },
+    "count": {
+      "zero": "Nenhuma conversa",
+      "one": "1 conversa",
+      "other": "{{count}} conversas"
+    },
     "empty": {
       "default": "Nenhuma conversa ainda",
       "search": "Nenhuma conversa encontrada",

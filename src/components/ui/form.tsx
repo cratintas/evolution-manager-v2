@@ -78,7 +78,7 @@ const FormControl = ({ children }: { children: React.ReactNode }) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
 
   if (!React.isValidElement(children)) return null;
-  return React.cloneElement(children as React.ReactElement, {
+  return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
     id: formItemId,
     "aria-describedby": !error ? `${formDescriptionId}` : `${formDescriptionId} ${formMessageId}`,
     "aria-invalid": !!error,

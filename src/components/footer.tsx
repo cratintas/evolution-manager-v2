@@ -18,10 +18,6 @@ function Footer() {
 
   const links = [
     {
-      name: "Discord",
-      url: "https://evolution-api.com/discord",
-    },
-    {
       name: "Postman",
       url: "https://evolution-api.com/postman",
     },

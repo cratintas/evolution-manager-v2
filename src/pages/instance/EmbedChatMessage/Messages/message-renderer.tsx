@@ -143,7 +143,12 @@ export function MessageRenderer({ message, fromMe }: MessageRendererProps) {
     case "locationMessage":
       return <LocationMessage locationMessage={message.message.locationMessage} fromMe={fromMe} />;
 
-    default:
-      return <>{JSON.stringify(message.message)}</>;
+    default: {
+      const text =
+        message.message?.conversation ||
+        message.message?.extendedTextMessage?.text ||
+        message.message?.text;
+      return <span>{typeof text === "string" && text.trim() ? text : "Mensagem não suportada"}</span>;
+    }
   }
 }

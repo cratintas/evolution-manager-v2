@@ -3,22 +3,26 @@ import { Alert, AlertTitle } from "@evoapi/design-system/alert";
 import { Avatar, AvatarImage } from "@evoapi/design-system/avatar";
 import { Button } from "@evoapi/design-system/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@evoapi/design-system/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
-import { CircleUser, LogOut, MessageCircle, Power, QrCode, RefreshCw, Send, UsersRound } from "lucide-react";
+import { CircleUser, LogOut, MessageCircle, QrCode, Send, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import QRCode from "react-qr-code";
+import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { BaseHeader } from "@/components/base-header";
+import { ConnectWhatsAppDialog } from "@/components/connect-whatsapp-dialog";
 import { InstanceStatus } from "@/components/instance-status";
 import { InstanceToken } from "@/components/instance-token";
-import { useTheme } from "@/components/theme-provider";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import { useInstance } from "@/contexts/InstanceContext";
 
 import { useManageInstance } from "@/lib/queries/instance/manageInstance";
-import { getProvider, getToken, TOKEN_ID } from "@/lib/queries/token";
+import { getProvider, TOKEN_ID } from "@/lib/queries/token";
+
+import { formatWhatsAppNumber } from "@/pages/instance/Chat/chat-utils";
+import { Instance } from "@/types/evolution.types";
 
 import { GoQrCodeModal } from "./GoQrCodeModal";
 import { GoSendMessageModal } from "./GoSendMessageModal";
@@ -26,15 +30,15 @@ import { GoSendMessageModal } from "./GoSendMessageModal";
 function DashboardInstance() {
   const { t, i18n } = useTranslation();
   const numberFormatter = new Intl.NumberFormat(i18n.language);
-  const [qrCode, setQRCode] = useState<string | null>(null);
-  const [pairingCode, setPairingCode] = useState("");
+  const [qrOpen, setQrOpen] = useState(false);
   const [goQrOpen, setGoQrOpen] = useState(false);
   const [goSendOpen, setGoSendOpen] = useState(false);
-  const token = getToken(TOKEN_ID.TOKEN);
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const isGo = getProvider() === "go";
-  const { theme } = useTheme();
+  const queryClient = useQueryClient();
 
-  const { connect, logout, restart } = useManageInstance();
+  const { logout } = useManageInstance();
   const { instance, reloadInstance } = useInstance();
 
   useEffect(() => {
@@ -45,49 +49,36 @@ function DashboardInstance() {
     }
   }, [instance]);
 
-  const handleReload = async () => {
-    await reloadInstance();
+  const markDisconnected = () => {
+    if (!instance) return;
+    queryClient.setQueryData(
+      ["instance", "fetchInstance", JSON.stringify({ instanceId: instance.id })],
+      (current: Instance | undefined) => (current ? { ...current, connectionStatus: "close" } : current),
+    );
+    queryClient.setQueryData(["instance", "fetchInstances"], (current: Instance[] | undefined) =>
+      Array.isArray(current)
+        ? current.map((item) =>
+            item.id === instance.id || item.name === instance.name ? { ...item, connectionStatus: "close" } : item,
+          )
+        : current,
+    );
   };
 
-  const handleRestart = async (instanceName: string) => {
+  const handleLogout = async () => {
+    if (!instance || disconnecting) return;
+    setDisconnectOpen(false);
+    markDisconnected();
+    setDisconnecting(true);
     try {
-      await restart(instanceName);
+      await logout(instance.name);
+      toast.success(t("instance.dashboard.disconnect.success", { defaultValue: "WhatsApp desconectado." }));
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(t("instance.dashboard.disconnect.error", { defaultValue: "Não foi possível desconectar a conta." }));
+    } finally {
+      setDisconnecting(false);
       await reloadInstance();
-    } catch (error) {
-      console.error("Error:", error);
     }
-  };
-
-  const handleLogout = async (instanceName: string) => {
-    try {
-      await logout(instanceName);
-      await reloadInstance();
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const handleConnect = async (instanceName: string, wantPairing: boolean) => {
-    try {
-      setQRCode(null);
-      if (!token) return console.error("Token not found.");
-
-      if (wantPairing) {
-        const data = await connect({ instanceName, token, number: instance?.number });
-        setPairingCode(data.pairingCode);
-      } else {
-        const data = await connect({ instanceName, token });
-        setQRCode(data.code);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const closeQRCodePopup = async () => {
-    setQRCode(null);
-    setPairingCode("");
-    await reloadInstance();
   };
 
   const stats = useMemo(
@@ -99,53 +90,52 @@ function DashboardInstance() {
     [instance],
   );
 
-  const qrCodeColor = useMemo(() => (theme === "dark" ? "#fff" : theme === "light" ? "#000" : "#189d68"), [theme]);
-
   if (!instance) return <LoadingSpinner />;
 
   const connected = instance.connectionStatus === "open";
+  const configured = connected || Boolean(instance.ownerJid);
 
   return (
     <div className="flex flex-col">
       <BaseHeader
         title={instance.name}
-        subtitle={instance.profileName || t("instance.dashboard.subtitle", { defaultValue: "Gerencie sua instância" })}
-        secondaryActions={[
-          {
-            label: t("button.refresh", { defaultValue: "Atualizar" }),
-            icon: <RefreshCw className="h-4 w-4" />,
-            onClick: handleReload,
-          },
-          {
-            label: t("instance.dashboard.button.restart", { defaultValue: "Reiniciar" }),
-            icon: <Power className="h-4 w-4" />,
-            onClick: () => handleRestart(instance.name),
-          },
-          ...(connected
+        subtitle={
+          configured
+            ? instance.profileName || t("instance.dashboard.subtitle", { defaultValue: "Gerencie sua instância" })
+            : t("status.unconfigured", { defaultValue: "Não configurado" })
+        }
+        secondaryActions={
+          configured
             ? [
-                {
-                  label: t("instance.dashboard.button.disconnect", { defaultValue: "Desconectar" }),
-                  icon: <LogOut className="h-4 w-4" />,
-                  onClick: () => handleLogout(instance.name),
-                  variant: "destructive" as const,
-                },
+                ...(connected
+                  ? [
+                      {
+                        label: disconnecting
+                          ? t("instance.dashboard.disconnect.working", { defaultValue: "Desconectando..." })
+                          : t("instance.dashboard.button.disconnect", { defaultValue: "Desconectar" }),
+                        icon: <LogOut className="h-4 w-4" />,
+                        onClick: () => setDisconnectOpen(true),
+                        variant: "destructive" as const,
+                      },
+                    ]
+                  : []),
+                ...(isGo && connected
+                  ? [
+                      {
+                        label: t("instance.dashboard.button.sendMessage", { defaultValue: "Enviar mensagem" }),
+                        icon: <Send className="h-4 w-4" />,
+                        onClick: () => setGoSendOpen(true),
+                        variant: "default" as const,
+                      },
+                    ]
+                  : []),
               ]
-            : []),
-          ...(isGo && connected
-            ? [
-                {
-                  label: t("instance.dashboard.button.sendMessage", { defaultValue: "Enviar mensagem" }),
-                  icon: <Send className="h-4 w-4" />,
-                  onClick: () => setGoSendOpen(true),
-                  variant: "default" as const,
-                },
-              ]
-            : []),
-        ]}
+            : []
+        }
       />
 
       <div className="flex flex-col gap-6">
-        <Card className="border-sidebar-border bg-sidebar">
+        <Card className="border-border bg-card text-card-foreground">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -157,22 +147,26 @@ function DashboardInstance() {
                 <div>
                   <CardTitle className="break-all">{instance.profileName || instance.name}</CardTitle>
                   {instance.ownerJid && (
-                    <p className="mt-1 break-all text-xs text-muted-foreground">{instance.ownerJid.split("@")[0]}</p>
+                    <p className="mt-1 break-all text-xs text-muted-foreground">{formatWhatsAppNumber(instance.ownerJid)}</p>
                   )}
                 </div>
               </div>
-              <InstanceStatus status={instance.connectionStatus} />
+              <InstanceStatus status={instance.connectionStatus} configured={configured} />
             </div>
           </CardHeader>
           <CardContent className="flex flex-col items-start space-y-4">
-            <div className="w-full">
-              <InstanceToken token={instance.token} />
-            </div>
+            {connected && (
+              <div className="w-full">
+                <InstanceToken token={instance.token} />
+              </div>
+            )}
 
             {!connected && (
               <Alert variant="warning" className="flex flex-wrap items-center justify-between gap-3">
                 <AlertTitle className="text-lg font-bold tracking-wide">
-                  {t("instance.dashboard.alert")}
+                  {configured
+                    ? t("instance.dashboard.alert")
+                    : t("instance.dashboard.unconfigured", { defaultValue: "Nenhuma conta WhatsApp configurada" })}
                 </AlertTitle>
 
                 {isGo ? (
@@ -184,52 +178,15 @@ function DashboardInstance() {
                     <GoQrCodeModal open={goQrOpen} onOpenChange={setGoQrOpen} />
                   </>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    <Dialog>
-                      <DialogTrigger onClick={() => handleConnect(instance.name, false)} asChild>
-                        <Button>
-                          <QrCode className="mr-2 h-4 w-4" />
-                          {t("instance.dashboard.button.qrcode.label")}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent onCloseAutoFocus={closeQRCodePopup}>
-                        <DialogHeader>{t("instance.dashboard.button.qrcode.title")}</DialogHeader>
-                        <div className="flex items-center justify-center py-4">
-                          {qrCode ? (
-                            <QRCode value={qrCode} size={256} bgColor="transparent" fgColor={qrCodeColor} className="rounded-sm" />
-                          ) : (
-                            <LoadingSpinner />
-                          )}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    {instance.number && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" onClick={() => handleConnect(instance.name, true)}>
-                            {t("instance.dashboard.button.pairingCode.label")}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent onCloseAutoFocus={closeQRCodePopup}>
-                          <DialogHeader>
-                            <DialogDescription>
-                              {pairingCode ? (
-                                <div className="py-3">
-                                  <p className="text-center font-semibold">{t("instance.dashboard.button.pairingCode.title")}</p>
-                                  <p className="mt-2 text-center font-mono text-2xl tracking-widest">
-                                    {pairingCode.substring(0, 4)}-{pairingCode.substring(4, 8)}
-                                  </p>
-                                </div>
-                              ) : (
-                                <LoadingSpinner />
-                              )}
-                            </DialogDescription>
-                          </DialogHeader>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
+                  <>
+                    <Button onClick={() => setQrOpen(true)}>
+                      <QrCode className="mr-2 h-4 w-4" />
+                      {configured
+                        ? t("instance.dashboard.button.qrcode.label")
+                        : t("instance.dashboard.button.configure", { defaultValue: "Configurar" })}
+                    </Button>
+                    <ConnectWhatsAppDialog instance={instance} open={qrOpen} onOpenChange={setQrOpen} onConnected={reloadInstance} />
+                  </>
                 )}
               </Alert>
             )}
@@ -239,26 +196,47 @@ function DashboardInstance() {
 
         {isGo && <GoSendMessageModal open={goSendOpen} onOpenChange={setGoSendOpen} />}
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="border-sidebar-border bg-sidebar">
+        <Dialog open={disconnectOpen} onOpenChange={setDisconnectOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("instance.dashboard.disconnect.title", { defaultValue: "Desconectar WhatsApp?" })}</DialogTitle>
+              <DialogDescription>
+                {t("instance.dashboard.disconnect.description", {
+                  defaultValue: "A sessão da conta será encerrada. Você precisará escanear o QR Code para conectar de novo.",
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDisconnectOpen(false)}>
+                {t("button.cancel")}
+              </Button>
+              <Button type="button" variant="destructive" onClick={() => void handleLogout()}>
+                {t("instance.dashboard.button.disconnect", { defaultValue: "Desconectar" })}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {configured && <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card className="border-border bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <CircleUser size="18" />
                 {t("instance.dashboard.contacts")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-bold">{numberFormatter.format(stats.contacts)}</CardContent>
+            <CardContent className="text-3xl font-bold text-card-foreground">{numberFormatter.format(stats.contacts)}</CardContent>
           </Card>
-          <Card className="border-sidebar-border bg-sidebar">
+          <Card className="border-border bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <UsersRound size="18" />
                 {t("instance.dashboard.chats")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-bold">{numberFormatter.format(stats.chats)}</CardContent>
+            <CardContent className="text-3xl font-bold text-card-foreground">{numberFormatter.format(stats.chats)}</CardContent>
           </Card>
-          <Card className="border-sidebar-border bg-sidebar">
+          <Card className="border-border bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <MessageCircle size="18" />
@@ -267,7 +245,7 @@ function DashboardInstance() {
             </CardHeader>
             <CardContent className="text-3xl font-bold">{numberFormatter.format(stats.messages)}</CardContent>
           </Card>
-        </section>
+        </section>}
       </div>
     </div>
   );

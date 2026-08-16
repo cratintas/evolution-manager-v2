@@ -1,1 +1,281 @@
-/* Chat-specific overrides can go here */
+.inbox-shell {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.inbox-list {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+.inbox-resizer {
+  width: 6px;
+  flex-shrink: 0;
+  background: var(--border);
+  cursor: col-resize;
+}
+
+.inbox-resizer:hover,
+.inbox-resizer[data-active],
+.inbox-resizer[data-separator-active] {
+  background: var(--primary);
+}
+
+.inbox-list-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.inbox-item {
+  display: flex;
+  width: 100%;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  transition: background-color 0.15s ease;
+}
+
+.inbox-item:hover {
+  background: color-mix(in srgb, var(--accent) 80%, transparent);
+}
+
+.inbox-kebab {
+  opacity: 0;
+}
+
+.inbox-item:hover .inbox-kebab,
+.inbox-item:focus-within .inbox-kebab,
+.inbox-bubble-wrap:hover .inbox-kebab {
+  opacity: 1;
+}
+
+.inbox-item-active {
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.inbox-unread {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 0.35rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: transform 0.18s ease;
+}
+
+.inbox-item-trail {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 1.25rem;
+}
+
+.inbox-item-chevron {
+  display: inline-flex;
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: width 0.18s ease, opacity 0.18s ease, margin 0.18s ease;
+}
+
+.inbox-item:hover .inbox-unread,
+.inbox-item:focus-within .inbox-unread {
+  transform: translateX(-4px);
+}
+
+.inbox-item:hover .inbox-item-chevron,
+.inbox-item:focus-within .inbox-item-chevron {
+  width: 1.25rem;
+  margin-left: 0.1rem;
+  opacity: 1;
+}
+
+.inbox-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.inbox-thread {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.inbox-thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+.inbox-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.inbox-status-open {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--primary);
+}
+
+.inbox-status-closed {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.inbox-bubble {
+  max-width: min(70%, 36rem);
+  border-radius: 1rem;
+  padding: 0.4rem 0.55rem 0.28rem 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+.inbox-bubble-inner {
+  overflow: hidden;
+}
+
+.inbox-bubble-meta {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.18rem;
+  margin: 0.32rem 0 0 0.55rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.inbox-ticks {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.inbox-unread-sep {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.75rem 0;
+}
+
+.inbox-unread-sep span {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.inbox-scroll-bottom {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 5.5rem;
+  z-index: 5;
+}
+
+.inbox-quote {
+  margin-bottom: 0.35rem;
+  border-left: 3px solid color-mix(in srgb, currentColor 55%, transparent);
+  border-radius: 0.4rem;
+  background: rgb(0 0 0 / 0.08);
+  padding: 0.25rem 0.45rem;
+  font-size: 0.75rem;
+}
+
+.inbox-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.15rem;
+  padding: 0.4rem;
+}
+
+.inbox-bubble-out {
+  background: #128a4c;
+  color: #ffffff;
+  border-bottom-right-radius: 0.3rem;
+}
+
+.inbox-bubble-in {
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-bottom-left-radius: 0.3rem;
+}
+
+.inbox-bubble-time {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.18rem;
+  margin-top: 0;
+  font-size: 0.68rem;
+  opacity: 0.8;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.inbox-composer {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.7rem 0.8rem;
+}
+
+.inbox-composer-box {
+  border: 0;
+  border-radius: 1.75rem;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.16);
+}
+
+:root {
+  --inbox-canvas: #fffdf8;
+}
+
+.dark {
+  --inbox-canvas: oklch(0.168 0.009 78);
+}

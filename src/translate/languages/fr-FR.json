@@ -156,6 +156,8 @@
   },
   "sidebar": {
     "dashboard": "Vue d'ensemble",
+    "chat": "Conversations",
+    "contacts": "Contacts",
     "configurations": "Configurations",
     "settings": "Comportement",
     "proxy": "Proxy",
@@ -174,8 +176,7 @@
     "evolutionBot": "Bot Evolution",
     "flowise": "Flowise",
     "documentation": "Documentation",
-    "postman": "Postman",
-    "discord": "Discord"
+    "postman": "Postman"
   },
   "toast": {
     "instance": {
@@ -203,7 +204,7 @@
     }
   },
   "login": {
-    "title": "Evolution Manager",
+    "title": "Connexion",
     "description": "Veuillez vous connecter pour continuer",
     "form": {
       "serverUrl": "URL du Serveur",
@@ -1553,8 +1554,20 @@
       "contacts": "Contacts",
       "groups": "Groupes"
     },
-    "count_one": "{{count}} conversation",
-    "count_other": "{{count}} conversations",
+    "filters": {
+      "active": "Actives",
+      "all": "Toutes",
+      "groups": "Groupes",
+      "toggle": "Filtres",
+      "unread": "Non lues",
+      "openWindow": "Fenêtre 24h",
+      "clear": "Effacer"
+    },
+    "count": {
+      "zero": "Aucune conversation",
+      "one": "1 conversation",
+      "other": "{{count}} conversations"
+    },
     "empty": {
       "default": "Aucune conversation pour le moment",
       "search": "Aucune conversation trouvée",

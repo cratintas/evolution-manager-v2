@@ -129,7 +129,8 @@
     "all": "All",
     "open": "Connected",
     "connecting": "Connecting",
-    "closed": "Disconnected"
+    "closed": "Disconnected",
+    "unconfigured": "Not configured"
   },
   "footer": {
     "clientName": "Client name",
@@ -179,8 +180,37 @@
       "contacts": "Contacts",
       "groups": "Groups"
     },
-    "count_one": "{{count}} conversation",
-    "count_other": "{{count}} conversations",
+    "filters": {
+      "active": "Active",
+      "all": "All",
+      "groups": "Groups",
+      "toggle": "Filters",
+      "unread": "Unread",
+      "openWindow": "24h window",
+      "clear": "Clear",
+      "hint": "All lists everything. Active shows direct chats. Groups shows only groups."
+    },
+    "status": {
+      "open": "Open conversation",
+      "closed": "Window closed"
+    },
+    "conclude": {
+      "action": "Resolve",
+      "success": "Conversation resolved",
+      "error": "Could not resolve the conversation"
+    },
+    "newChat": {
+      "title": "New conversation",
+      "description": "Enter the number with country code to open the chat.",
+      "placeholder": "5511999999999",
+      "submit": "Open chat",
+      "invalid": "Enter a valid number with country code"
+    },
+    "count": {
+      "zero": "No conversations",
+      "one": "1 conversation",
+      "other": "{{count}} conversations"
+    },
     "empty": {
       "default": "No conversations yet",
       "search": "No conversations found",
@@ -199,7 +229,8 @@
   },
   "sidebar": {
     "dashboard": "Dashboard",
-    "chat": "Chat",
+    "chat": "Conversations",
+    "contacts": "Contacts",
     "configurations": "Configurations",
     "settings": "Settings",
     "proxy": "Proxy",
@@ -218,8 +249,7 @@
     "evolutionBot": "Evolution Bot",
     "flowise": "Flowise",
     "documentation": "Documentation",
-    "postman": "Postman",
-    "discord": "Discord"
+    "postman": "Postman"
   },
   "toast": {
     "instance": {
@@ -247,7 +277,7 @@
     }
   },
   "login": {
-    "title": "Evolution Manager",
+    "title": "Sign in",
     "description": "Please enter your credentials to continue",
     "form": {
       "serverUrl": "Server URL",

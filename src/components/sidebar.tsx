@@ -1,8 +1,10 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@evoapi/design-system/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@evoapi/design-system/collapsible";
 import {
   ChevronDown,
   CircleHelp,
   Cog,
+  ContactRound,
   FileQuestion,
   IterationCcw,
   LayoutDashboard,
@@ -13,9 +15,9 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
 
-import { useTheme } from "@/components/theme-provider";
 import { useInstance } from "@/contexts/InstanceContext";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { FEATURES, FeatureKey, isFeatureEnabled } from "@/lib/provider/features";
 import { cn } from "@/lib/utils";
 
@@ -40,33 +42,21 @@ type MenuGroup = {
 type Menu = MenuLeaf | MenuGroup;
 
 function SidebarShell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
-  const currentYear = new Date().getFullYear();
-  const { theme } = useTheme();
-  const logoSrc =
-    theme === "dark"
-      ? "https://evolution-api.com/files/evo/evolution-logo-white.svg"
-      : "https://evolution-api.com/files/evo/evolution-logo.svg";
-
   return (
-    <aside className="hidden md:flex bg-sidebar text-sidebar-foreground flex-col w-56 border-r border-sidebar-border">
-      <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
-        <img src={logoSrc} alt="Evolution API" className="h-7" />
+    <aside className="hidden w-62 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex" style={{ width: 248 }}>
+      <div className="px-4 pb-5 pt-6">
+        <BrandLogo compact />
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
         {children}
       </nav>
 
       {footer && (
-        <div className="border-t border-sidebar-border px-2 py-3 space-y-1">
+        <div className="space-y-1 border-t border-sidebar-border px-3 py-3">
           {footer}
         </div>
       )}
-
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="text-sm font-medium text-primary">Evolution Manager</div>
-        <div className="mt-1 text-xs text-muted-foreground">© {currentYear} All rights reserved</div>
-      </div>
     </aside>
   );
 }
@@ -78,7 +68,7 @@ function NavItem({ to, icon: Icon, label, isExternal }: { to: string; icon?: typ
         href={to}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
+        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
         <span>{label}</span>
@@ -90,14 +80,16 @@ function NavItem({ to, icon: Icon, label, isExternal }: { to: string; icon?: typ
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all",
-          isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+          "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors",
+          isActive
+            ? "bg-sidebar-accent font-semibold text-foreground before:absolute before:-left-3 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary"
+            : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
         )
       }
     >
       {({ isActive }) => (
         <>
-          {Icon && <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />}
+          {Icon && <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-sidebar-primary")} />}
           <span>{label}</span>
         </>
       )}
@@ -111,7 +103,6 @@ function ExternalLinks() {
     <>
       <NavItem to="https://docs.evolutionfoundation.com.br/" icon={FileQuestion} label={t("sidebar.documentation")} isExternal />
       <NavItem to="https://evolution-api.com/postman" icon={CircleHelp} label={t("sidebar.postman")} isExternal />
-      <NavItem to="https://evolution-api.com/discord" icon={MessageCircle} label={t("sidebar.discord")} isExternal />
     </>
   );
 }
@@ -131,19 +122,25 @@ function InstanceSidebar() {
   const { pathname } = useLocation();
 
   const base = instance ? `/manager/instance/${instance.id}` : "";
+  const connected = instance?.connectionStatus === "open";
 
   const menus: Menu[] = useMemo(
     () => [
       { id: "dashboard", title: t("sidebar.dashboard"), icon: LayoutDashboard, path: "dashboard" },
       { id: "chat", title: t("sidebar.chat"), icon: MessageCircle, path: "chat" },
-      {
-        title: t("sidebar.configurations"),
-        icon: Cog,
-        children: [
-          { id: "settings", title: t("sidebar.settings"), path: "settings" },
-          { id: "proxy", title: t("sidebar.proxy"), path: "proxy" },
-        ],
-      },
+      { id: "contacts", title: t("sidebar.contacts"), icon: ContactRound, path: "contacts" },
+      ...(connected
+        ? [
+            {
+              title: t("sidebar.configurations"),
+              icon: Cog,
+              children: [
+                { id: "settings", title: t("sidebar.settings"), path: "settings" },
+                { id: "proxy", title: t("sidebar.proxy"), path: "proxy" },
+              ],
+            } satisfies Menu,
+          ]
+        : []),
       {
         title: t("sidebar.events"),
         icon: IterationCcw,
@@ -169,7 +166,7 @@ function InstanceSidebar() {
         ],
       },
     ],
-    [t],
+    [t, connected],
   );
 
   const visibleMenus = useMemo(
@@ -188,9 +185,37 @@ function InstanceSidebar() {
     [menus],
   );
 
+  const account = (
+    <div className="mb-3 flex items-center gap-2 rounded-lg bg-sidebar-accent/70 px-3 py-2">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={instance?.profilePicUrl} alt={instance?.profileName || instance?.name} />
+        <AvatarFallback className="text-xs">{(instance?.profileName || instance?.name || "EV").slice(0, 2)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium text-sidebar-foreground">
+          {instance?.profileName || instance?.name || t("sidebar.account", { defaultValue: "Conta ativa" })}
+        </p>
+        <p className="truncate text-[11px] text-sidebar-foreground/70">
+          {instance?.connectionStatus === "open"
+            ? t("status.open")
+            : instance?.ownerJid
+              ? t("status.closed")
+              : t("status.unconfigured", { defaultValue: "Não configurado" })}
+        </p>
+      </div>
+    </div>
+  );
+
   return (
-    <SidebarShell footer={<ExternalLinks />}>
-      <NavItem to="/manager" icon={LayoutDashboard} label={`← ${t("dashboard.title")}`} />
+    <SidebarShell
+      footer={
+        <>
+          {account}
+          <ExternalLinks />
+        </>
+      }
+    >
+      <NavItem to="/manager" label={`← ${t("dashboard.title")}`} />
       <div className="my-2 border-t border-sidebar-border" />
       {visibleMenus.map((menu) => {
         if ("children" in menu) {
@@ -200,10 +225,9 @@ function InstanceSidebar() {
               <CollapsibleTrigger
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all",
-                  groupActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  groupActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
-                <menu.icon className={cn("h-5 w-5 flex-shrink-0", groupActive && "text-primary")} />
                 <span>{menu.title}</span>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
@@ -215,7 +239,7 @@ function InstanceSidebar() {
                     className={({ isActive }) =>
                       cn(
                         "rounded-md px-3 py-1.5 text-sm transition-all",
-                        isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground",
+                        isActive ? "text-sidebar-primary font-medium" : "text-sidebar-foreground/75 hover:text-sidebar-accent-foreground",
                       )
                     }
                   >
@@ -226,7 +250,7 @@ function InstanceSidebar() {
             </Collapsible>
           );
         }
-        return <NavItem key={menu.id} to={`${base}/${menu.path}`} icon={menu.icon} label={menu.title} />;
+        return <NavItem key={menu.id} to={`${base}/${menu.path}`} label={menu.title} />;
       })}
     </SidebarShell>
   );
