@@ -19,6 +19,7 @@ export type NewInstance = {
   token?: string | null;
   number?: string | null;
   businessId?: string | null;
+  syncFullHistory?: boolean;
 };
 
 export type Instance = {

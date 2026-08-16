@@ -70,6 +70,8 @@ function NewInstance({ resetTable, open, onOpenChange }: { resetTable: () => voi
         token: data.token === "" ? null : data.token,
         number: data.number === "" ? null : data.number,
         businessId: data.businessId === "" ? null : data.businessId,
+        qrcode: data.integration === "WHATSAPP-BAILEYS",
+        syncFullHistory: true,
       };
 
       await createInstance(instanceData);

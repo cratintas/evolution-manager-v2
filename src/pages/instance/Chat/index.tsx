@@ -7,14 +7,17 @@ import {
   Filter,
   MessageCircle,
   Plus,
+  RefreshCw,
   Search,
   User,
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Group, Panel, Separator, useDefaultLayout } from "react-resizable-panels";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -60,7 +63,13 @@ function Chat() {
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatNumber, setNewChatNumber] = useState("");
 
-  const { data: chats } = useFindChats({ instanceName: instance?.name });
+  const queryClient = useQueryClient();
+  const { data: chats, refetch: refetchChats, isFetching: syncing } = useFindChats({ instanceName: instance?.name });
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({
+    id: "inbox-chat",
+    storage: typeof window === "undefined" ? undefined : localStorage,
+    panelIds: ["list", "thread"],
+  });
 
   const allChats = useMemo(() => {
     if (!chats) return realtimeChats;
@@ -146,16 +155,34 @@ function Chat() {
       });
     };
 
+    const refreshInbox = () => {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+    };
+
     socket.on("messages.upsert", handle);
     socket.on("send.message", handle);
+    socket.on("chats.set", refreshInbox);
+    socket.on("chats.upsert", refreshInbox);
+    socket.on("chats.update", refreshInbox);
+    socket.on("messages.set", refreshInbox);
+    socket.on("messaging-history.set", refreshInbox);
+    socket.on("contacts.upsert", refreshInbox);
+    socket.on("connection.update", refreshInbox);
     socket.connect();
 
     return () => {
       socket.off("messages.upsert");
       socket.off("send.message");
+      socket.off("chats.set");
+      socket.off("chats.upsert");
+      socket.off("chats.update");
+      socket.off("messages.set");
+      socket.off("messaging-history.set");
+      socket.off("contacts.upsert");
+      socket.off("connection.update");
       disconnectSocket(socket);
     };
-  }, [instance, instance?.name]);
+  }, [instance, instance?.name, queryClient]);
 
   const scrollToBottom = useCallback(() => {
     lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,9 +237,8 @@ function Chat() {
     { id: "groups", label: t("chat.filters.groups", { defaultValue: "Grupos" }) },
   ];
 
-  return (
-    <div className="inbox-shell">
-      <aside className={cn("inbox-list", showSidebar ? "flex" : "hidden md:flex")}>
+  const listPane = (
+      <aside className={cn("inbox-list", !isMD && (showSidebar ? "flex" : "hidden"), isMD && "flex")}>
         <div className="inbox-list-toolbar">
           <div className="flex items-center justify-end gap-2">
             <LanguageToggle />
@@ -257,6 +283,18 @@ function Chat() {
               >
                 <Filter className="h-3.5 w-3.5" />
                 {t("chat.filters.toggle", { defaultValue: "Filtros" })}
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full"
+                disabled={syncing}
+                title={t("chat.sync", { defaultValue: "Sincronizar conversas" })}
+                onClick={() => void refetchChats()}
+              >
+                <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
+                <span className="sr-only">{t("chat.sync", { defaultValue: "Sincronizar conversas" })}</span>
               </Button>
               <Button type="button" size="icon" className="h-8 w-8 rounded-full" onClick={() => setNewChatOpen(true)}>
                 <Plus className="h-4 w-4" />
@@ -338,8 +376,10 @@ function Chat() {
           )}
         </div>
       </aside>
+  );
 
-      <main className={cn("inbox-thread", showChat ? "flex" : "hidden md:flex")}>
+  const threadPane = (
+      <main className={cn("inbox-thread", !isMD && (showChat ? "flex" : "hidden"), isMD && "flex")}>
         {remoteJid ? (
           <>
             {!isMD && (
@@ -370,6 +410,32 @@ function Chat() {
           </div>
         )}
       </main>
+  );
+
+  return (
+    <>
+      {isMD ? (
+        <Group
+          id="inbox-chat"
+          orientation="horizontal"
+          className="inbox-shell"
+          defaultLayout={defaultLayout}
+          onLayoutChanged={onLayoutChanged}
+        >
+          <Panel id="list" defaultSize="22rem" minSize="16rem" maxSize="55%" className="flex min-h-0 min-w-0">
+            {listPane}
+          </Panel>
+          <Separator className="inbox-resizer" />
+          <Panel id="thread" minSize="20rem" className="flex min-h-0 min-w-0">
+            {threadPane}
+          </Panel>
+        </Group>
+      ) : (
+        <div className="inbox-shell">
+          {listPane}
+          {threadPane}
+        </div>
+      )}
 
       <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
         <DialogContent>
@@ -398,7 +464,7 @@ function Chat() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
 

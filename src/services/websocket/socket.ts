@@ -1,5 +1,7 @@
 import { io, Socket } from "socket.io-client";
 
+import { getToken, TOKEN_ID } from "@/lib/queries/token";
+
 // Store active sockets
 const activeSockets = new Map<string, Socket>();
 
@@ -11,24 +13,25 @@ export interface WebSocketConnection {
 }
 
 export const connectSocket = (serverUrl: string): WebSocketConnection => {
-  // Check if socket already exists for this URL
-  if (activeSockets.has(serverUrl)) {
-    const existingSocket = activeSockets.get(serverUrl)!;
+  const apiKey = getToken(TOKEN_ID.TOKEN) || getToken(TOKEN_ID.INSTANCE_TOKEN) || "";
+  const cacheKey = `${serverUrl}#${apiKey}`;
+
+  if (activeSockets.has(cacheKey)) {
+    const existingSocket = activeSockets.get(cacheKey)!;
     return createSocketWrapper(existingSocket);
   }
 
-  // Create new socket connection
   const socket = io(serverUrl, {
     transports: ["websocket", "polling"],
     autoConnect: false,
     reconnection: true,
-    reconnectionAttempts: 5,
+    reconnectionAttempts: 8,
     reconnectionDelay: 1000,
     timeout: 20000,
+    query: apiKey ? { apikey: apiKey } : {},
   });
 
-  // Store socket
-  activeSockets.set(serverUrl, socket);
+  activeSockets.set(cacheKey, socket);
 
   // Set up connection event handlers
   socket.on("connect", () => {

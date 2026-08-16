@@ -28,5 +28,7 @@ export const useFindMessages = (props: UseQueryParams<FindMessagesResponse> & Pa
     queryKey: queryKey({ instanceName, remoteJid }),
     queryFn: () => findMessages({ instanceName: instanceName!, remoteJid: remoteJid! }),
     enabled: !!instanceName && !!remoteJid,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 };

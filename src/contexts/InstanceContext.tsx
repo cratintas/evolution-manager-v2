@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useParams } from "react-router-dom";
 
 import { useFetchInstance } from "@/lib/queries/instance/fetchInstance";
+import { TOKEN_ID } from "@/lib/queries/token";
 
 import { Instance } from "@/types/evolution.types";
 
@@ -30,6 +31,12 @@ export const InstanceProvider: React.FC<InstanceProviderProps> = ({ children }):
   const [instanceId, setInstanceId] = useState<string | null>(null);
   const { data: instance, refetch: reloadInstance } = useFetchInstance({
     instanceId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.connectionStatus;
+      if (status === "connecting") return 2500;
+      if (status === "open") return 20000;
+      return 8000;
+    },
   });
 
   useEffect(() => {
@@ -39,6 +46,13 @@ export const InstanceProvider: React.FC<InstanceProviderProps> = ({ children }):
       setInstanceId(null);
     }
   }, [queryParams]);
+
+  useEffect(() => {
+    if (!instance) return;
+    localStorage.setItem(TOKEN_ID.INSTANCE_ID, instance.id);
+    localStorage.setItem(TOKEN_ID.INSTANCE_NAME, instance.name);
+    localStorage.setItem(TOKEN_ID.INSTANCE_TOKEN, instance.token);
+  }, [instance]);
 
   return (
     <InstanceContext.Provider

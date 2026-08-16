@@ -3,22 +3,20 @@ import { Alert, AlertTitle } from "@evoapi/design-system/alert";
 import { Avatar, AvatarImage } from "@evoapi/design-system/avatar";
 import { Button } from "@evoapi/design-system/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@evoapi/design-system/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import { CircleUser, LogOut, MessageCircle, Power, QrCode, RefreshCw, Send, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import QRCode from "react-qr-code";
 
 import { BaseHeader } from "@/components/base-header";
+import { ConnectWhatsAppDialog } from "@/components/connect-whatsapp-dialog";
 import { InstanceStatus } from "@/components/instance-status";
 import { InstanceToken } from "@/components/instance-token";
-import { useTheme } from "@/components/theme-provider";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import { useInstance } from "@/contexts/InstanceContext";
 
 import { useManageInstance } from "@/lib/queries/instance/manageInstance";
-import { getProvider, getToken, TOKEN_ID } from "@/lib/queries/token";
+import { getProvider, TOKEN_ID } from "@/lib/queries/token";
 
 import { GoQrCodeModal } from "./GoQrCodeModal";
 import { GoSendMessageModal } from "./GoSendMessageModal";
@@ -26,15 +24,12 @@ import { GoSendMessageModal } from "./GoSendMessageModal";
 function DashboardInstance() {
   const { t, i18n } = useTranslation();
   const numberFormatter = new Intl.NumberFormat(i18n.language);
-  const [qrCode, setQRCode] = useState<string | null>(null);
-  const [pairingCode, setPairingCode] = useState("");
+  const [qrOpen, setQrOpen] = useState(false);
   const [goQrOpen, setGoQrOpen] = useState(false);
   const [goSendOpen, setGoSendOpen] = useState(false);
-  const token = getToken(TOKEN_ID.TOKEN);
   const isGo = getProvider() === "go";
-  const { resolvedTheme } = useTheme();
 
-  const { connect, logout, restart } = useManageInstance();
+  const { logout, restart } = useManageInstance();
   const { instance, reloadInstance } = useInstance();
 
   useEffect(() => {
@@ -50,6 +45,11 @@ function DashboardInstance() {
   };
 
   const handleRestart = async (instanceName: string) => {
+    if (instance?.connectionStatus !== "open") {
+      if (isGo) setGoQrOpen(true);
+      else setQrOpen(true);
+      return;
+    }
     try {
       await restart(instanceName);
       await reloadInstance();
@@ -67,29 +67,6 @@ function DashboardInstance() {
     }
   };
 
-  const handleConnect = async (instanceName: string, wantPairing: boolean) => {
-    try {
-      setQRCode(null);
-      if (!token) return console.error("Token not found.");
-
-      if (wantPairing) {
-        const data = await connect({ instanceName, token, number: instance?.number });
-        setPairingCode(data.pairingCode);
-      } else {
-        const data = await connect({ instanceName, token });
-        setQRCode(data.code);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const closeQRCodePopup = async () => {
-    setQRCode(null);
-    setPairingCode("");
-    await reloadInstance();
-  };
-
   const stats = useMemo(
     () => ({
       contacts: instance?._count?.Contact || 0,
@@ -98,8 +75,6 @@ function DashboardInstance() {
     }),
     [instance],
   );
-
-  const qrCodeColor = useMemo(() => (resolvedTheme === "dark" ? "#e8f0ec" : "#17241d"), [resolvedTheme]);
 
   if (!instance) return <LoadingSpinner />;
 
@@ -184,52 +159,13 @@ function DashboardInstance() {
                     <GoQrCodeModal open={goQrOpen} onOpenChange={setGoQrOpen} />
                   </>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    <Dialog>
-                      <DialogTrigger onClick={() => handleConnect(instance.name, false)} asChild>
-                        <Button>
-                          <QrCode className="mr-2 h-4 w-4" />
-                          {t("instance.dashboard.button.qrcode.label")}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent onCloseAutoFocus={closeQRCodePopup}>
-                        <DialogHeader>{t("instance.dashboard.button.qrcode.title")}</DialogHeader>
-                        <div className="flex items-center justify-center py-4">
-                          {qrCode ? (
-                            <QRCode value={qrCode} size={256} bgColor="transparent" fgColor={qrCodeColor} className="rounded-sm" />
-                          ) : (
-                            <LoadingSpinner />
-                          )}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    {instance.number && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" onClick={() => handleConnect(instance.name, true)}>
-                            {t("instance.dashboard.button.pairingCode.label")}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent onCloseAutoFocus={closeQRCodePopup}>
-                          <DialogHeader>
-                            <DialogDescription>
-                              {pairingCode ? (
-                                <div className="py-3">
-                                  <p className="text-center font-semibold">{t("instance.dashboard.button.pairingCode.title")}</p>
-                                  <p className="mt-2 text-center font-mono text-2xl tracking-widest">
-                                    {pairingCode.substring(0, 4)}-{pairingCode.substring(4, 8)}
-                                  </p>
-                                </div>
-                              ) : (
-                                <LoadingSpinner />
-                              )}
-                            </DialogDescription>
-                          </DialogHeader>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
+                  <>
+                    <Button onClick={() => setQrOpen(true)}>
+                      <QrCode className="mr-2 h-4 w-4" />
+                      {t("instance.dashboard.button.qrcode.label")}
+                    </Button>
+                    <ConnectWhatsAppDialog instance={instance} open={qrOpen} onOpenChange={setQrOpen} onConnected={reloadInstance} />
+                  </>
                 )}
               </Alert>
             )}
