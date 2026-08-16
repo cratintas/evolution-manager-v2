@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 import { api } from "@/lib/queries/api";
@@ -185,62 +185,66 @@ export function TestInteractiveModal({ instance, open, onOpenChange }: TestInter
 
   return (
     <Dialog open={open} onOpenChange={(o) => !sending && onOpenChange(o)}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{t("testInteractive.title")}</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-h-[min(90vh,calc(100dvh-2rem))] max-w-2xl overflow-hidden p-0 sm:max-w-2xl">
+        <div className="grid max-h-[min(90vh,calc(100dvh-2rem))] grid-rows-[auto_minmax(0,1fr)_auto]">
+          <DialogHeader className="border-b border-border px-6 py-4 pr-12">
+            <DialogTitle>{t("testInteractive.title")}</DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <p className="text-xs text-muted-foreground">
-            {t("testInteractive.subtitle", { instance: instance.name })}{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-[11px]">POST {endpoint}</code>
-          </p>
+          <div className="min-h-0 overflow-y-auto overscroll-contain px-6 py-4">
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                {t("testInteractive.subtitle", { instance: instance.name })}{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-[11px]">POST {endpoint}</code>
+              </p>
 
-          <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-            <TabsList className="grid w-full grid-cols-5">
-              {tabs.map((tb) => (
-                <TabsTrigger key={tb.key} value={tb.key}>
-                  {tb.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+              <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
+                <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
+                  {tabs.map((tb) => (
+                    <TabsTrigger key={tb.key} value={tb.key}>
+                      {tb.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-            {tabs.map((tb) => (
-              <TabsContent key={tb.key} value={tb.key} className="space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="ti-number">{t("testInteractive.number")}</Label>
-                  <Input
-                    id="ti-number"
-                    placeholder="5511999999999"
-                    value={number}
-                    onChange={(e) => setNumber(e.target.value)}
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    {t("testInteractive.numberHint")}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="ti-payload">{t("testInteractive.payload")}</Label>
-                  <Textarea
-                    id="ti-payload"
-                    rows={12}
-                    className="font-mono text-xs"
-                    value={payloads[tb.key]}
-                    onChange={(e) => setPayloads((p) => ({ ...p, [tb.key]: e.target.value }))}
-                  />
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
+                {tabs.map((tb) => (
+                  <TabsContent key={tb.key} value={tb.key} className="space-y-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="ti-number">{t("testInteractive.number")}</Label>
+                      <Input
+                        id="ti-number"
+                        placeholder="5511999999999"
+                        value={number}
+                        onChange={(e) => setNumber(e.target.value)}
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        {t("testInteractive.numberHint")}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="ti-payload">{t("testInteractive.payload")}</Label>
+                      <Textarea
+                        id="ti-payload"
+                        rows={14}
+                        className="max-h-64 min-h-40 resize-y overflow-y-auto font-mono text-xs"
+                        value={payloads[tb.key]}
+                        onChange={(e) => setPayloads((p) => ({ ...p, [tb.key]: e.target.value }))}
+                      />
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
+          </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <DialogFooter className="border-t border-border px-6 py-4">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
               {t("button.cancel")}
             </Button>
             <Button onClick={send} disabled={sending}>
               {sending ? t("testInteractive.sending") : t("testInteractive.send")}
             </Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
