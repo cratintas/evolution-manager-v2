@@ -13,8 +13,6 @@ import { z } from "zod";
 import { Form, FormSelect } from "@/components/ui/form";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
-import { useTheme } from "@/components/theme-provider";
-
 import { verifyCreds } from "@/lib/queries/auth/verifyCreds";
 import { verifyGoServer } from "@/lib/queries/auth/verifyGoServer";
 import { verifyServer } from "@/lib/queries/auth/verifyServer";
@@ -39,13 +37,9 @@ function defaultServerUrl() {
 function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const logoSrc =
-    resolvedTheme === "dark"
-      ? "https://evolution-api.com/files/evo/evolution-logo-white.svg"
-      : "https://evolution-api.com/files/evo/evolution-logo.svg";
+  const logoSrc = "/assets/branding/logo-cra.webp";
 
   const loginForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -133,7 +127,7 @@ function Login() {
       </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center text-center">
-          <img src={logoSrc} alt="Evolution API" className="mb-3 h-10" />
+          <img src={logoSrc} alt="CRA Tintas" className="mb-3 h-14 w-14 rounded-xl object-cover" />
           <p className="text-sm text-muted-foreground">{t("login.description")}</p>
         </div>
 

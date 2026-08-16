@@ -42,27 +42,30 @@ type Menu = MenuLeaf | MenuGroup;
 
 function SidebarShell({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
   const currentYear = new Date().getFullYear();
-  const logoSrc = "https://evolution-api.com/files/evo/evolution-logo-white.svg";
 
   return (
-    <aside className="hidden md:flex bg-sidebar text-sidebar-foreground flex-col w-56 border-r border-sidebar-border">
-      <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
-        <img src={logoSrc} alt="Evolution API" className="h-7" />
+    <aside className="hidden w-62 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex" style={{ width: 248 }}>
+      <div className="flex items-center gap-3 px-5 pb-5 pt-6">
+        <img src="/assets/branding/logo-cra.webp" alt="CRA Tintas" className="h-9 w-9 rounded-lg object-cover" />
+        <div className="leading-none">
+          <b className="block text-[16px] font-bold tracking-tight">CRA</b>
+          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">WhatsApp</span>
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
         {children}
       </nav>
 
       {footer && (
-        <div className="border-t border-sidebar-border px-2 py-3 space-y-1">
+        <div className="space-y-1 border-t border-sidebar-border px-3 py-3">
           {footer}
         </div>
       )}
 
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="text-sm font-medium text-sidebar-primary">evolution</div>
-        <div className="mt-1 text-xs text-sidebar-foreground/70">© {currentYear} Evolution Manager</div>
+      <div className="border-t border-sidebar-border p-4">
+        <div className="text-sm font-semibold">CRA Tintas</div>
+        <div className="mt-1 text-xs text-muted-foreground">© {currentYear} Painel administrativo</div>
       </div>
     </aside>
   );
@@ -75,7 +78,7 @@ function NavItem({ to, icon: Icon, label, isExternal }: { to: string; icon?: typ
         href={to}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
         <span>{label}</span>
@@ -87,8 +90,10 @@ function NavItem({ to, icon: Icon, label, isExternal }: { to: string; icon?: typ
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all",
-          isActive ? "bg-sidebar-accent text-sidebar-primary" : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors",
+          isActive
+            ? "bg-sidebar-accent font-semibold text-foreground before:absolute before:-left-3 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary"
+            : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
         )
       }
     >

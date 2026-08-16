@@ -6,70 +6,77 @@
 /* html:root / html.dark beat @evoapi/design-system :root and .dark */
 html:root {
   color-scheme: light;
-  --background: #f6f7f4;
-  --foreground: #17241d;
-  --card: #ffffff;
-  --card-foreground: #17241d;
-  --popover: #ffffff;
-  --popover-foreground: #17241d;
-  --primary: #128a4c;
-  --primary-foreground: #ffffff;
-  --secondary: #e8f3ec;
-  --secondary-foreground: #0f3d28;
-  --muted: #eef2ee;
-  --muted-foreground: #4d5d56;
-  --accent: #e7f6ee;
-  --accent-foreground: #0f3d28;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: #dce5df;
-  --input: #dce5df;
-  --ring: #128a4c;
-  --sidebar: #0c2f24;
-  --sidebar-foreground: #d7ebe2;
-  --sidebar-primary: #1aa35a;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #164536;
-  --sidebar-accent-foreground: #edf8f2;
-  --sidebar-border: #16382d;
-  --sidebar-ring: #1aa35a;
-  --radius: 0.7rem;
-  --chart-1: #128a4c;
-  --chart-2: #0f766e;
-  --chart-3: #365314;
+  --background: #fffdf8;
+  --foreground: #191816;
+  --card: #f5f1e9;
+  --card-foreground: #191816;
+  --popover: #fffdf8;
+  --popover-foreground: #191816;
+  --primary: #9f2721;
+  --primary-foreground: #fffdf8;
+  --secondary: #ede7da;
+  --secondary-foreground: #3f4a2e;
+  --muted: #ede7da;
+  --muted-foreground: #6f6c65;
+  --accent: #f5f1e9;
+  --accent-foreground: #191816;
+  --destructive: #9f2721;
+  --destructive-foreground: #fffdf8;
+  --border: rgba(25, 24, 22, 0.14);
+  --input: rgba(25, 24, 22, 0.26);
+  --ring: #9f2721;
+  --sidebar: #fffdf8;
+  --sidebar-foreground: #191816;
+  --sidebar-primary: #9f2721;
+  --sidebar-primary-foreground: #fffdf8;
+  --sidebar-accent: #f5f1e9;
+  --sidebar-accent-foreground: #191816;
+  --sidebar-border: rgba(25, 24, 22, 0.14);
+  --sidebar-ring: #9f2721;
+  --radius: 0.5rem;
+  --chart-1: #9f2721;
+  --chart-2: #596047;
+  --chart-3: #741b17;
   --chart-4: #ca8a04;
-  --chart-5: #b45309;
+  --chart-5: #3f4a2e;
+  --font-display: "Manrope", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
 }
 
 html.dark {
   color-scheme: dark;
-  --background: #0b1512;
-  --foreground: #e8f0ec;
-  --card: #12201b;
-  --card-foreground: #e8f0ec;
-  --popover: #16261f;
-  --popover-foreground: #e8f0ec;
-  --primary: #22c55e;
-  --primary-foreground: #052e16;
-  --secondary: #163227;
-  --secondary-foreground: #d7ebe2;
-  --muted: #163227;
-  --muted-foreground: #a8bdb2;
-  --accent: #1a3b2e;
-  --accent-foreground: #d7ebe2;
-  --destructive: #f87171;
-  --destructive-foreground: #450a0a;
-  --border: #234237;
-  --input: #234237;
-  --ring: #22c55e;
-  --sidebar: #081a14;
-  --sidebar-foreground: #d7ebe2;
-  --sidebar-primary: #22c55e;
-  --sidebar-primary-foreground: #052e16;
-  --sidebar-accent: #123126;
-  --sidebar-accent-foreground: #edf8f2;
-  --sidebar-border: #123126;
-  --sidebar-ring: #22c55e;
+  --background: oklch(0.168 0.009 78);
+  --foreground: oklch(0.93 0.009 78);
+  --card: oklch(0.212 0.011 78);
+  --card-foreground: oklch(0.93 0.009 78);
+  --popover: oklch(0.212 0.011 78);
+  --popover-foreground: oklch(0.93 0.009 78);
+  --primary: oklch(0.645 0.15 30);
+  --primary-foreground: oklch(0.2 0.02 78);
+  --secondary: oklch(0.252 0.013 78);
+  --secondary-foreground: oklch(0.93 0.009 78);
+  --muted: oklch(0.252 0.013 78);
+  --muted-foreground: oklch(0.715 0.012 78);
+  --accent: oklch(0.252 0.013 78);
+  --accent-foreground: oklch(0.93 0.009 78);
+  --destructive: oklch(0.645 0.15 30);
+  --destructive-foreground: oklch(0.2 0.02 78);
+  --border: rgba(255, 253, 248, 0.14);
+  --input: rgba(255, 253, 248, 0.27);
+  --ring: oklch(0.645 0.15 30);
+  --sidebar: oklch(0.168 0.009 78);
+  --sidebar-foreground: oklch(0.93 0.009 78);
+  --sidebar-primary: oklch(0.645 0.15 30);
+  --sidebar-primary-foreground: oklch(0.2 0.02 78);
+  --sidebar-accent: oklch(0.212 0.011 78);
+  --sidebar-accent-foreground: oklch(0.93 0.009 78);
+  --sidebar-border: rgba(255, 253, 248, 0.14);
+  --sidebar-ring: oklch(0.645 0.15 30);
+  --chart-1: oklch(0.645 0.15 30);
+  --chart-2: oklch(0.68 0.085 108);
+  --chart-3: oklch(0.585 0.14 30);
+  --chart-4: oklch(0.78 0.1 72);
+  --chart-5: oklch(0.745 0.09 108);
 }
 
 @theme inline {
@@ -125,7 +132,18 @@ html.dark {
 
   body {
     @apply bg-background text-foreground;
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: var(--font-body, "DM Sans", system-ui, sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display, "Manrope", system-ui, sans-serif);
+    letter-spacing: -0.02em;
   }
 
   #root {

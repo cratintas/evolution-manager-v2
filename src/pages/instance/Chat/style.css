@@ -234,8 +234,8 @@
 }
 
 .inbox-bubble-out {
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: #128a4c;
+  color: #ffffff;
   border-bottom-right-radius: 0.3rem;
 }
 
@@ -273,9 +273,9 @@
 }
 
 :root {
-  --inbox-canvas: #f3f6f3;
+  --inbox-canvas: #fffdf8;
 }
 
 .dark {
-  --inbox-canvas: #101816;
+  --inbox-canvas: oklch(0.168 0.009 78);
 }

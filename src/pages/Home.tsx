@@ -3,13 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@evoa
 import { Badge } from "@evoapi/design-system/badge";
 import { ArrowRight, GitBranch, Globe, Mail, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
 
   const handleGoToManager = () => {
     navigate("/manager");
@@ -20,11 +18,7 @@ export default function Home() {
       {/* Header with theme toggle */}
       <header className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center">
-          <img
-            src={resolvedTheme === "dark" ? "https://evolution-api.com/files/evo/evolution-logo-white.svg" : "https://evolution-api.com/files/evo/evolution-logo.svg"}
-            alt="Evolution API Logo"
-            className="h-8"
-          />
+          <img src="/assets/branding/logo-cra.webp" alt="CRA Tintas" className="h-9 w-9 rounded-lg object-cover" />
         </div>
         <div className="flex items-center gap-4">
           <LanguageToggle />
@@ -37,20 +31,16 @@ export default function Home() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-6">
-              <img
-                src={resolvedTheme === "dark" ? "https://evolution-api.com/files/evo/evolution-logo-white.svg" : "https://evolution-api.com/files/evo/evolution-logo.svg"}
-                alt="Evolution Manager Logo"
-                className="h-10"
-              />
+              <img src="/assets/branding/logo-cra.webp" alt="CRA Tintas" className="h-14 w-14 rounded-xl object-cover" />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Evolution Manager v2
+              CRA WhatsApp
             </h1>
             <p className="text-xl text-muted-foreground mb-6">
-              Modern web interface for Evolution API management
+              Painel administrativo da CRA Tintas
             </p>
             <Badge variant="secondary" className="text-sm px-3 py-1">
-              Version 2.0.0
+              Versão 2.4.0
             </Badge>
           </div>
 
@@ -59,10 +49,10 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />
-                Welcome to Evolution Manager
+                Bem-vindo ao painel CRA
               </CardTitle>
               <CardDescription>
-                A powerful, modern dashboard for managing your WhatsApp API instances with Evolution API
+                Gerencie as instâncias de WhatsApp da CRA Tintas no mesmo visual do administrativo.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -133,7 +123,7 @@ export default function Home() {
 
           {/* Footer */}
           <div className="text-center mt-12 text-sm text-muted-foreground">
-            <p>© 2025 Evolution API. Licensed under Apache 2.0 with Evolution API custom conditions.</p>
+            <p>© {new Date().getFullYear()} CRA Tintas. Painel administrativo.</p>
           </div>
         </div>
       </div>

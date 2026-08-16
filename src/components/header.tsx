@@ -25,7 +25,7 @@ function Header({ instanceId }: { instanceId?: string }) {
   const { data: instance } = useFetchInstance({ instanceId });
 
   return (
-    <header className="flex h-16 items-center justify-end border-b border-border bg-card px-4 text-foreground shadow-sm">
+    <header className="flex h-[68px] items-center justify-end border-b border-border bg-background/90 px-8 text-foreground backdrop-blur-md">
       <div className="flex items-center gap-2">
         {instanceId && instance && (
           <div className="mr-2 flex items-center gap-2 rounded-md bg-muted px-3 py-1.5">
