@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef, TableOptions, flexRender, getCoreRowModel, getFilteredRowModel, getGroupedRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { ColumnDef, StockFeatures, TableOptions, flexRender, stockFeatures, useTable } from "@tanstack/react-table";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,12 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { cn } from "@/lib/utils";
 
-interface DataTableProps<TData, TValue> extends Omit<TableOptions<TData>, "data" | "columns" | "getCoreRowModel" | "getFilteredRowModel"> {
+interface DataTableProps<TData, TValue> extends Omit<TableOptions<StockFeatures, TData>, "data" | "columns" | "features"> {
   isLoading?: boolean;
   enableHeaders?: boolean;
   loadingMessage?: ReactNode;
   noResultsMessage?: ReactNode;
-  columns: ColumnDef<TData, TValue>[];
+  columns: ColumnDef<StockFeatures, TData, TValue>[];
   data: TData[];
   className?: string;
   highlightedRows?: string[];
@@ -21,14 +21,11 @@ interface DataTableProps<TData, TValue> extends Omit<TableOptions<TData>, "data"
 
 export function DataTable<TData, TValue>({ columns, data, isLoading, loadingMessage, noResultsMessage, enableHeaders = true, className, highlightedRows, ...options }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
-  const table = useReactTable({
+  const table = useTable({
     ...options,
+    features: stockFeatures,
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getGroupedRowModel: getGroupedRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
 
   return (

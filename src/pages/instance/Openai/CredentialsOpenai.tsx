@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ColumnDef, SortingState } from "@tanstack/react-table";
+import { ColumnDef, SortingState, StockFeatures } from "@tanstack/react-table";
 import { ArrowUpDown, Lock, Plus, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
@@ -101,7 +101,7 @@ function CredentialsOpenai({ onCredentialsUpdate, showText = true }: Credentials
     }
   };
 
-  const columns: ColumnDef<OpenaiCreds>[] = [
+  const columns: ColumnDef<StockFeatures, OpenaiCreds>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ColumnDef, RowSelectionState, SortingState } from "@tanstack/react-table";
+import { ColumnDef, RowSelectionState, SortingState, StockFeatures } from "@tanstack/react-table";
 import { Delete, ListCollapse, MessageSquare, MoreHorizontal, Pause, Play, RotateCcw, StopCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -194,7 +194,7 @@ function SessionsEvoai({ evoaiId }: { evoaiId?: string }) {
     }
   };
 
-  const columns: ColumnDef<IntegrationSession>[] = [
+  const columns: ColumnDef<StockFeatures, IntegrationSession>[] = [
     {
       id: "select",
       header: ({ table }) => (
