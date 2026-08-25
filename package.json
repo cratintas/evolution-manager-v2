@@ -79,7 +79,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.85.0",
-    "react-i18next": "^17.0.11",
+    "react-i18next": "^17.0.12",
     "react-qr-code": "^2.2.0",
     "react-resizable-panels": "^4.12.3",
     "react-router-dom": "^7.18.2",
