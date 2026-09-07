@@ -10,7 +10,7 @@
     "workarounds:all"
   ],
   "labels": ["dependencies"],
-  "schedule": ["before 6am on monday"],
+  "schedule": ["before 6am"],
   "timezone": "America/Sao_Paulo",
   "prConcurrentLimit": 15,
   "prHourlyLimit": 5,
